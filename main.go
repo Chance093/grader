@@ -2,11 +2,19 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/manifoldco/promptui"
 )
 
 func main() {
+	startUpQuestion()
+}
+
+func viewOverallGrades() {
+}
+
+func startUpQuestion() {
 	prompt := promptui.Select{
 		Label: "Choose an option",
 		Items: []string{"Add a Class", "Select a Class", "View Overall Grades", "Quit"},
@@ -33,26 +41,7 @@ func main() {
 	}
 }
 
-func addClass() {
-}
-
-func selectClass() {
-	prompt := promptui.Select{
-		Label: "Select a Class",
-		Items: []string{"Algebra 1", "Calculus", "Go Back"},
-	}
-
-	_, result, err := prompt.Run()
-	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
-	}
-
-	fmt.Printf("You chose %s\n", result)
-}
-
-func viewOverallGrades() {
-}
-
 func quit() {
+	fmt.Println("Quitting...")
+	os.Exit(0)
 }
