@@ -3,24 +3,18 @@ Lightweight CLI application to keep track of my grades for my self taught journe
 
 Displays Class Grades
 
-==============================================
 | Class                              | Grade |
-|====================================|=======|
+|------------------------------------|-------|
 | Beginning and Intermediate Algebra |  97%  |
 | Geometry                           |  98%  |
 | Calculus                           |  92%  |
-| Linear Algrebra                    |  90%  |
-==============================================
+| Linear Algebra                     |  90%  |
 
-                      OR 
+OR 
 
-==============================================
 | Class                              | Grade |
-|============================================|
-|                                            |
-|                 NO CLASSES                 |
-|                                            |
-==============================================
+|------------------------------------|-------|
+| NO CLASSES                         |       |
 
 Prompts "Choose an option:"
     - Lists: "Add a Class", "Select a Class", "View Overall Grades"
