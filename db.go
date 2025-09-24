@@ -14,7 +14,7 @@ func initDB() (*sql.DB, error) {
 	createTablesSQL := `
 CREATE TABLE IF NOT EXISTS classes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     subject TEXT NOT NULL
 );
 

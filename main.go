@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -9,20 +10,28 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type apiConfig struct {
+	db *sql.DB
+}
+
 func main() {
 	db, err := initDB()
-  if err != nil {
-    log.Fatal(err)
-  }
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer db.Close()
 
-	startUpQuestion()
+	cfg := apiConfig{
+		db: db,
+	}
+
+	cfg.startUpQuestion()
 }
 
 func viewOverallGrades() {
 }
 
-func startUpQuestion() {
+func (cfg *apiConfig) startUpQuestion() {
 	prompt := promptui.Select{
 		Label: "Choose an option",
 		Items: []string{"Add a Class", "Select a Class", "View Overall Grades", "Quit"},
@@ -36,9 +45,9 @@ func startUpQuestion() {
 
 	switch result {
 	case "Add a Class":
-		addClass()
+		cfg.addClass()
 	case "Select a Class":
-		selectClass()
+		cfg.selectClass()
 	case "View Overall Grades":
 		viewOverallGrades()
 	case "Quit":

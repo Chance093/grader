@@ -6,7 +6,7 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-func selectAssignmentOption(className string) {
+func (cfg *apiConfig) selectAssignmentOption(className string) {
 	prompt := promptui.Select{
 		Label: "Choose an option",
 		Items: []string{"Add assignment", "Edit assignment", "Edit grade weights", "Go back"},
@@ -26,7 +26,7 @@ func selectAssignmentOption(className string) {
 	case "Edit grade weights":
 		editGradeWeights(className)
 	case "Go back":
-		selectClass()
+		cfg.selectClass()
 	default: // Handles cases not explicitly matched
 		fmt.Printf("Prompt failed %v\n", err)
 		return
