@@ -2,12 +2,20 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/manifoldco/promptui"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
+	db, err := initDB()
+  if err != nil {
+    log.Fatal(err)
+  }
+	defer db.Close()
+
 	startUpQuestion()
 }
 
