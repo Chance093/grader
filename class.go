@@ -32,6 +32,8 @@ func (cfg *apiConfig) addClass() {
 		log.Fatalf("Failed to add to db: %s", err.Error())
 	}
 
+  fmt.Printf("%s added!\n", className)
+
 	cfg.startUpQuestion()
 }
 
