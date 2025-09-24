@@ -49,9 +49,16 @@ func (cfg *apiConfig) addClassToDB(className, subject string) error {
 }
 
 func (cfg *apiConfig) selectClass() {
+	classes, err := cfg.getAllClassesFromDB()
+	if err != nil {
+		log.Fatalf("Error while getting classes: %s", err.Error())
+	}
+
+  classes = append(classes, "Go Back")
+
 	prompt := promptui.Select{
 		Label: "Select a Class",
-		Items: []string{"Algebra 1", "Calculus", "Go Back"},
+		Items: classes,
 	}
 
 	_, result, err := prompt.Run()
@@ -65,4 +72,34 @@ func (cfg *apiConfig) selectClass() {
 	}
 
 	cfg.selectAssignmentOption(result)
+}
+
+type Classes []struct {
+	id      int
+	name    string
+	subject string
+}
+
+func (cfg *apiConfig) getAllClassesFromDB() ([]string, error) {
+	const sqlQueryClassesStatement = `SELECT name FROM classes;`
+
+	rows, err := cfg.db.Query(sqlQueryClassesStatement)
+	if err != nil {
+		return nil, err
+	}
+  defer rows.Close()
+
+  var classes []string
+
+  for rows.Next() {
+    var name string
+
+    if err := rows.Scan(&name); err != nil {
+      return nil, err
+    }
+
+    classes = append(classes, name)
+  }
+
+	return classes, nil
 }
