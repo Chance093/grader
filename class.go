@@ -277,4 +277,48 @@ func (cfg *apiConfig) deleteClassFromDB(className string) {
 }
 
 func (cfg *apiConfig) editClass() {
+	classes, err := cfg.getAllClassesFromDB()
+	if err != nil {
+		log.Fatalf("Error while getting classes : %s", err.Error())
+	}
+
+	classes = append(classes, "Go Back")
+
+	prompt := promptui.Select{
+		Label: "Select a class to edit",
+		Items: classes,
+	}
+
+	_, result, err := prompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	if result == "Go Back" {
+		cfg.startUpQuestion()
+	}
+
+	classNamePrompt := promptui.Prompt{
+		Label: "Enter new class name",
+	}
+	newClassName, err := classNamePrompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	cfg.editClassInDB(result, newClassName)
+
+	fmt.Printf("Changed class name '%s' to '%s'!\n", result, newClassName)
+
+	cfg.startUpQuestion()
+}
+
+func (cfg *apiConfig) editClassInDB(oldClassName, newClassName string) {
+	// take the class name and find the class id in the db
+	const sqlUpdateClassStatement = `UPDATE classes SET name = ? WHERE name = ?`
+	if _, err := cfg.db.Exec(sqlUpdateClassStatement, newClassName, oldClassName); err != nil {
+		log.Fatal(err)
+	}
 }
