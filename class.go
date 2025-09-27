@@ -15,7 +15,7 @@ type ClassAndGrade = struct {
 
 type ClassesAndGrades = []ClassAndGrade
 
-func (cfg *apiConfig) getClassesAndGrades() {
+func (cfg *apiConfig) viewOverallGrades() {
 	raw, err := cfg.getClassesAndGradesFromDB()
 	if err != nil {
 		log.Fatalf("Error while getting classes and grades: %s", err.Error())
@@ -44,6 +44,8 @@ func (cfg *apiConfig) getClassesAndGrades() {
 	}
 
   getClassGradesAscii(calculated)
+
+  cfg.startUpQuestion()
 }
 
 func (cfg *apiConfig) getClassesAndGradesFromDB() (ClassesAndGrades, error) {

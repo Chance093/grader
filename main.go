@@ -25,18 +25,13 @@ func main() {
 		db: db,
 	}
 
-  cfg.getClassesAndGrades()
-
 	cfg.startUpQuestion()
-}
-
-func viewOverallGrades() {
 }
 
 func (cfg *apiConfig) startUpQuestion() {
 	prompt := promptui.Select{
 		Label: "Choose an option",
-		Items: []string{"Add a Class", "Select a Class", "View Overall Grades", "Quit"},
+		Items: []string{"View Overall Grades", "Add a Class", "Select a Class", "Quit"},
 	}
 
 	_, result, err := prompt.Run()
@@ -51,7 +46,7 @@ func (cfg *apiConfig) startUpQuestion() {
 	case "Select a Class":
 		cfg.selectClass()
 	case "View Overall Grades":
-		viewOverallGrades()
+	  cfg.viewOverallGrades()
 	case "Quit":
 		quit()
 	default: // Handles cases not explicitly matched
