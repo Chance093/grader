@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 func getMaxCharLengths(data map[string]string) (int, int) {
-	maxClassCharLength := 5
+	maxClassCharLength := 20
 	maxGradeCharLength := 5
 
 	for className, grade := range data {
