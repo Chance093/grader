@@ -2,51 +2,29 @@ package main
 
 import "fmt"
 
-var data = []struct {
-	className string
-	grade     string
-}{
-	{
-		className: "Beginning and Intermediate Algebra",
-		grade:     "97.3",
-	},
-	{
-		className: "Geometry",
-		grade:     "98.52",
-	},
-	{
-		className: "Calculus",
-		grade:     "92.5",
-	},
-	{
-		className: "Linear Algrebra",
-		grade:     "100.0",
-	},
-}
-
-func getMaxCharLengths() (int, int) {
+func getMaxCharLengths(data map[string]string) (int, int) {
 	maxClassCharLength := 5
 	maxGradeCharLength := 5
 
-	for _, dat := range data {
-		if len(dat.className) > maxClassCharLength {
-			maxClassCharLength = len(dat.className)
+	for className, grade := range data {
+		if len(className) > maxClassCharLength {
+			maxClassCharLength = len(className)
 		}
 
-		if len(dat.grade)+1 > maxGradeCharLength {
-			maxGradeCharLength = len(dat.grade) + 1
+		if len(grade)+1 > maxGradeCharLength {
+			maxGradeCharLength = len(grade) + 1
 		}
 	}
 
 	return maxClassCharLength, maxGradeCharLength
 }
 
-func getClassGradesAscii() {
-	maxC, maxG := getMaxCharLengths()
+func getClassGradesAscii(data map[string]string) {
+	maxC, maxG := getMaxCharLengths(data)
 	topAndBottomLine := getTopAndBottomLine(maxC, maxG)
 	headerLine := getHeaderLine(maxC, maxG)
 	borderLine := getBorderLine(maxC, maxG)
-	assignmentLines := getAssignmentLines(maxC, maxG)
+	assignmentLines := getAssignmentLines(maxC, maxG, data)
 
 	fmt.Println("")
 	fmt.Println(topAndBottomLine)
@@ -102,17 +80,17 @@ func getBorderLine(maxC, maxG int) string {
 	return borderLine
 }
 
-func getAssignmentLines(maxC, maxG int) []string {
+func getAssignmentLines(maxC, maxG int, data map[string]string) []string {
 	var lines []string
 
-	for _, dat := range data {
-		assignmentLine := fmt.Sprintf(" | %s", dat.className)
-		for i := 0; i < maxC-len(dat.className); i++ {
+	for className, grade := range data {
+		assignmentLine := fmt.Sprintf(" | %s", className)
+		for i := 0; i < maxC-len(className); i++ {
 			assignmentLine += " "
 		}
-		assignmentLine += fmt.Sprintf(" | %s", dat.grade) + "%"
+		assignmentLine += fmt.Sprintf(" | %s", grade) + "%"
 
-		for i := 0; i < maxG-len(dat.grade); i++ {
+		for i := 0; i < maxG-len(grade); i++ {
 			assignmentLine += " "
 		}
 		assignmentLine += "|"

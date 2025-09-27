@@ -25,7 +25,7 @@ func main() {
 		db: db,
 	}
 
-  getClassGradesAscii()
+  cfg.getClassesAndGrades()
 
 	cfg.startUpQuestion()
 }
@@ -61,6 +61,5 @@ func (cfg *apiConfig) startUpQuestion() {
 }
 
 func quit() {
-	fmt.Println("Quitting...")
 	os.Exit(0)
 }

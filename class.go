@@ -3,9 +3,83 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/manifoldco/promptui"
 )
+
+type ClassAndGrade = struct {
+	className string
+	grade     float64
+}
+
+type ClassesAndGrades = []ClassAndGrade
+
+func (cfg *apiConfig) getClassesAndGrades() {
+	raw, err := cfg.getClassesAndGradesFromDB()
+	if err != nil {
+		log.Fatalf("Error while getting classes and grades: %s", err.Error())
+	}
+
+	classesAndGrades := make(map[string][]float64)
+	for _, dat := range raw {
+		value, ok := classesAndGrades[dat.className]
+		if ok {
+			classesAndGrades[dat.className] = append(value, dat.grade)
+		} else {
+			classesAndGrades[dat.className] = []float64{dat.grade}
+		}
+	}
+
+	calculated := make(map[string]string)
+	for key, val := range classesAndGrades {
+		var sum float64
+		for _, grade := range val {
+			sum += grade
+		}
+
+    grade := sum / float64(len(val))
+
+		calculated[key] = strconv.FormatFloat(grade, 'f', 1, 64)
+	}
+
+  getClassGradesAscii(calculated)
+}
+
+func (cfg *apiConfig) getClassesAndGradesFromDB() (ClassesAndGrades, error) {
+	query := `
+  SELECT 
+    classes.name AS class_name, 
+    assignments.percentage AS assignment_grade 
+  FROM classes
+  INNER JOIN assignments
+    ON assignments.class_id = classes.id;
+  `
+
+	rows, err := cfg.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var classesAndGrades ClassesAndGrades
+
+	for rows.Next() {
+		var className string
+		var grade float64
+
+		if err := rows.Scan(&className, &grade); err != nil {
+			return nil, err
+		}
+
+		classesAndGrades = append(classesAndGrades, ClassAndGrade{
+			className,
+			grade,
+		})
+	}
+
+	return classesAndGrades, nil
+}
 
 func (cfg *apiConfig) addClass() {
 	prompt := promptui.Prompt{
@@ -32,7 +106,7 @@ func (cfg *apiConfig) addClass() {
 		log.Fatalf("Failed to add to db: %s", err.Error())
 	}
 
-  fmt.Printf("%s added!\n", className)
+	fmt.Printf("%s added!\n", className)
 
 	cfg.startUpQuestion()
 }
@@ -56,7 +130,7 @@ func (cfg *apiConfig) selectClass() {
 		log.Fatalf("Error while getting classes: %s", err.Error())
 	}
 
-  classes = append(classes, "Go Back")
+	classes = append(classes, "Go Back")
 
 	prompt := promptui.Select{
 		Label: "Select a Class",
@@ -89,19 +163,19 @@ func (cfg *apiConfig) getAllClassesFromDB() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-  defer rows.Close()
+	defer rows.Close()
 
-  var classes []string
+	var classes []string
 
-  for rows.Next() {
-    var name string
+	for rows.Next() {
+		var name string
 
-    if err := rows.Scan(&name); err != nil {
-      return nil, err
-    }
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
 
-    classes = append(classes, name)
-  }
+		classes = append(classes, name)
+	}
 
 	return classes, nil
 }
