@@ -83,12 +83,24 @@ func getBorderLine(maxC, maxG int) string {
 func getAssignmentLines(maxC, maxG int, data map[string]string) []string {
 	var lines []string
 
+	if len(data) <= 0 {
+		data = map[string]string{
+			"No Classes": " N/A",
+		}
+	}
+
 	for className, grade := range data {
 		assignmentLine := fmt.Sprintf(" | %s", className)
 		for i := 0; i < maxC-len(className); i++ {
 			assignmentLine += " "
 		}
-		assignmentLine += fmt.Sprintf(" | %s", grade) + "%"
+		assignmentLine += fmt.Sprintf(" | %s", grade)
+
+		if className == "No Classes" {
+			assignmentLine += " "
+		} else {
+			assignmentLine += "%"
+		}
 
 		for i := 0; i < maxG-len(grade); i++ {
 			assignmentLine += " "
