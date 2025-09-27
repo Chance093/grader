@@ -31,7 +31,7 @@ func main() {
 func (cfg *apiConfig) startUpQuestion() {
 	prompt := promptui.Select{
 		Label: "Choose an option",
-		Items: []string{"View Overall Grades", "Add a Class", "Select a Class", "Quit"},
+		Items: []string{"View Overall Grades", "Select a Class", "Add a Class", "Edit a Class", "Delete a Class", "Quit"},
 	}
 
 	_, result, err := prompt.Run()
@@ -41,12 +41,16 @@ func (cfg *apiConfig) startUpQuestion() {
 	}
 
 	switch result {
-	case "Add a Class":
-		cfg.addClass()
+	case "View Overall Grades":
+		cfg.viewOverallGrades()
 	case "Select a Class":
 		cfg.selectClass()
-	case "View Overall Grades":
-	  cfg.viewOverallGrades()
+	case "Add a Class":
+		cfg.addClass()
+	case "Edit a Class":
+		cfg.editClass()
+	case "Delete a Class":
+		cfg.deleteClass()
 	case "Quit":
 		quit()
 	default: // Handles cases not explicitly matched

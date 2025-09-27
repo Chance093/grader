@@ -58,11 +58,11 @@ func calculateGrades(raw ClassesAndGradesRaw) map[string]string {
 	calculated := make(map[string]string)
 	for className, weightGradeMap := range classesAndGrades {
 		var totalPercentage float64
-
-		var totalWeight int
-		for weight := range weightGradeMap {
-			totalWeight += weight
-		}
+      
+    var totalWeight int
+    for weight := range weightGradeMap {
+      totalWeight += weight
+    }
 
 		for weight, grades := range weightGradeMap {
 			var sum float64
@@ -71,11 +71,12 @@ func calculateGrades(raw ClassesAndGradesRaw) map[string]string {
 			}
 
 			total := sum / float64(len(grades))
-			newWeight := float64(weight) / float64(totalWeight)
+      newWeight := float64(weight) / float64(totalWeight)
 			percent := total * newWeight
 
 			totalPercentage += percent
 		}
+
 
 		calculated[className] = strconv.FormatFloat(totalPercentage, 'f', 1, 64)
 	}
@@ -238,43 +239,11 @@ func (cfg *apiConfig) getAllClassesFromDB() ([]string, error) {
 	return classes, nil
 }
 
-func (cfg *apiConfig) deleteClass() {
-	classes, err := cfg.getAllClassesFromDB()
-	if err != nil {
-		log.Fatalf("Error while getting classes : %s", err.Error())
-	}
-
-	classes = append(classes, "Go Back")
-
-	prompt := promptui.Select{
-		Label: "Select a class to delete",
-		Items: classes,
-	}
-
-	_, result, err := prompt.Run()
-	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
-	}
-
-	if result == "Go Back" {
-		cfg.startUpQuestion()
-	}
-
-	cfg.deleteClassFromDB(result)
-
-	fmt.Printf("Deleted %s!\n", result)
-
-	cfg.startUpQuestion()
-}
-
-func (cfg *apiConfig) deleteClassFromDB(className string) {
+func (cfg *apiConfig) deleteClass(className string) {
 	// take the class name and find the class id in the db
 	const sqlDeleteClassStatement = `DELETE FROM classes WHERE name=?`
 	if _, err := cfg.db.Exec(sqlDeleteClassStatement, className); err != nil {
 		log.Fatal(err)
 	}
-}
 
-func (cfg *apiConfig) editClass() {
 }
