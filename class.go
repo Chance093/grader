@@ -8,12 +8,36 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-type ClassAndGrade = struct {
+// H 80
+// H 90
+// T 70
+// Q 30
+
+// H 170 / 2 = 85
+// T 70 / 1 = 70
+// Q 30 / 1 = 30
+
+// H 85 * 0.3 = 25.5
+// T 70 * 0.5 = 35
+// Q 30 * 0.2 = 6
+
+// 66.5%
+
+type ClassAndGradeRaw = struct {
 	className string
 	grade     float64
+	weight    int
 }
 
-type ClassesAndGrades = []ClassAndGrade
+type ClassesAndGradesRaw = []ClassAndGradeRaw
+
+type GradeAndWeight = struct {
+	grade  float64
+	weight int
+}
+type GradesAndWeights = []GradeAndWeight
+
+type ClassMap = map[string]map[int][]float64
 
 func (cfg *apiConfig) viewOverallGrades() {
 	raw, err := cfg.getClassesAndGradesFromDB()
@@ -21,41 +45,63 @@ func (cfg *apiConfig) viewOverallGrades() {
 		log.Fatalf("Error while getting classes and grades: %s", err.Error())
 	}
 
-	classesAndGrades := make(map[string][]float64)
+	classesAndGrades := make(ClassMap)
 	for _, dat := range raw {
 		value, ok := classesAndGrades[dat.className]
 		if ok {
-			classesAndGrades[dat.className] = append(value, dat.grade)
+			innerVal, innerOk := value[dat.weight]
+			if innerOk {
+				classesAndGrades[dat.className][dat.weight] = append(innerVal, dat.grade)
+			} else {
+				classesAndGrades[dat.className][dat.weight] = []float64{dat.grade}
+			}
 		} else {
-			classesAndGrades[dat.className] = []float64{dat.grade}
+			classesAndGrades[dat.className] = map[int][]float64{
+				dat.weight: {dat.grade},
+			}
 		}
 	}
 
 	calculated := make(map[string]string)
-	for key, val := range classesAndGrades {
-		var sum float64
-		for _, grade := range val {
-			sum += grade
+	for className, weightGradeMap := range classesAndGrades {
+    var totalPercentage float64
+
+		for weight, grades := range weightGradeMap {
+			var sum float64
+			for _, grade := range grades {
+				sum += grade
+			}
+
+      total := sum / float64(len(grades))
+      fmt.Println(className, weight, total)
+
+      percent := total * (float64(weight) / 100)
+      fmt.Println(className, weight, percent)
+      totalPercentage += percent
 		}
 
-    grade := sum / float64(len(val))
-
-		calculated[key] = strconv.FormatFloat(grade, 'f', 1, 64)
+    fmt.Println(totalPercentage)
+    fmt.Println("==================")
+		calculated[className] = strconv.FormatFloat(totalPercentage, 'f', 1, 64)
 	}
 
-  getClassGradesAscii(calculated)
+	getClassGradesAscii(calculated)
 
-  cfg.startUpQuestion()
+	cfg.startUpQuestion()
 }
 
-func (cfg *apiConfig) getClassesAndGradesFromDB() (ClassesAndGrades, error) {
+func (cfg *apiConfig) getClassesAndGradesFromDB() (ClassesAndGradesRaw, error) {
 	query := `
   SELECT 
     classes.name AS class_name, 
-    assignments.percentage AS assignment_grade 
+    assignments.percentage AS assignment_grade,
+    assignment_weights.weight AS assignment_weight
   FROM classes
   INNER JOIN assignments
-    ON assignments.class_id = classes.id;
+    ON assignments.class_id = classes.id
+  INNER JOIN assignment_weights
+    ON assignment_weights.class_id = classes.id 
+    AND assignment_weights.type_id = assignments.type_id;
   `
 
 	rows, err := cfg.db.Query(query)
@@ -64,19 +110,21 @@ func (cfg *apiConfig) getClassesAndGradesFromDB() (ClassesAndGrades, error) {
 	}
 	defer rows.Close()
 
-	var classesAndGrades ClassesAndGrades
+	var classesAndGrades ClassesAndGradesRaw
 
 	for rows.Next() {
 		var className string
 		var grade float64
+		var weight int
 
-		if err := rows.Scan(&className, &grade); err != nil {
+		if err := rows.Scan(&className, &grade, &weight); err != nil {
 			return nil, err
 		}
 
-		classesAndGrades = append(classesAndGrades, ClassAndGrade{
+		classesAndGrades = append(classesAndGrades, ClassAndGradeRaw{
 			className,
 			grade,
+			weight,
 		})
 	}
 
