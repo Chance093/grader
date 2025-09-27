@@ -23,7 +23,7 @@ func (cfg *apiConfig) selectAssignmentOption(className string) {
 	case "Add assignment":
 		cfg.addAssignment(className)
 	case "Edit assignment":
-		editAssignment(className)
+		cfg.editAssignment(className)
 	case "Edit grade weights":
 		editGradeWeights(className)
 	case "Go back":
@@ -106,8 +106,61 @@ func (cfg *apiConfig) addAssignmentToDB(name, assignmentType, className, totalPo
 	return nil
 }
 
-func editAssignment(className string) {
-	fmt.Printf("Editing assignment in %s\n", className)
+func (cfg *apiConfig) editAssignment(className string) {
+	assignments, err := cfg.getAllClassAssignmentsFromDB(className)
+	if err != nil {
+		log.Fatalf("Error while getting class assignments: %s", err.Error())
+	}
+
+	assignments = append(assignments, "Go Back")
+
+	prompt := promptui.Select{
+		Label: "Select an assignment to edit",
+		Items: assignments,
+	}
+
+	_, result, err := prompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	if result == "Go Back" {
+		cfg.startUpQuestion()
+	}
+}
+
+func (cfg *apiConfig) getAllClassAssignmentsFromDB(className string) ([]string, error) {
+	// take the class name and find the class id in the db
+	const sqlQueryClassIdStatement = `SELECT id FROM classes WHERE name=?`
+	var classID int
+	if err := cfg.db.QueryRow(sqlQueryClassIdStatement, className).Scan(&classID); err != nil {
+		log.Fatal(err)
+	}
+
+  fmt.Println(classID)
+
+	const sqlQueryAssignmentsStatement= `SELECT name FROM assignments WHERE class_id=?;`
+
+	rows, err := cfg.db.Query(sqlQueryAssignmentsStatement, classID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var assignments []string
+
+	for rows.Next() {
+		var name string
+
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+
+		assignments = append(assignments, name)
+	}
+
+	return assignments, nil
 }
 
 func editGradeWeights(className string) {
