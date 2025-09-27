@@ -299,6 +299,31 @@ func (cfg *apiConfig) editClass() {
 		cfg.startUpQuestion()
 	}
 
+	prompt2 := promptui.Select{
+		Label: "Choose an option",
+		Items: []string{"Change class name", "Change grade weights", "Go back"},
+	}
+
+	_, result2, err := prompt2.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	switch result2 {
+	case "Change class name":
+		cfg.editClassName(result)
+	case "Change grade weights":
+		cfg.editClassWeights(result)
+	case "Go back":
+		cfg.editClass()
+	default: // Handles cases not explicitly matched
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+}
+
+func (cfg *apiConfig) editClassName(oldClassName string) {
 	classNamePrompt := promptui.Prompt{
 		Label: "Enter new class name",
 	}
@@ -308,17 +333,142 @@ func (cfg *apiConfig) editClass() {
 		return
 	}
 
-	cfg.editClassInDB(result, newClassName)
+	cfg.editClassNameInDB(oldClassName, newClassName)
 
-	fmt.Printf("Changed class name '%s' to '%s'!\n", result, newClassName)
+	fmt.Printf("Changed class name '%s' to '%s'!\n", oldClassName, newClassName)
 
 	cfg.startUpQuestion()
 }
 
-func (cfg *apiConfig) editClassInDB(oldClassName, newClassName string) {
+func (cfg *apiConfig) editClassNameInDB(oldClassName, newClassName string) {
 	// take the class name and find the class id in the db
 	const sqlUpdateClassStatement = `UPDATE classes SET name = ? WHERE name = ?`
 	if _, err := cfg.db.Exec(sqlUpdateClassStatement, newClassName, oldClassName); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (cfg *apiConfig) editClassWeights(className string) {
+	typeMap := map[int]string{
+		1: "Test",
+		2: "Quiz",
+		3: "Homework",
+	}
+
+	currentWeights, err := cfg.getClassWeights(className)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	testWeightPrompt := promptui.Prompt{
+		Label: fmt.Sprintf("Enter new test weight (Current: %s-%d, %s-%d, %s-%d)", typeMap[currentWeights[0].type_id], currentWeights[0].weight, typeMap[currentWeights[1].type_id], currentWeights[1].weight, typeMap[currentWeights[2].type_id], currentWeights[2].weight),
+	}
+	testWeight, err := testWeightPrompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	quizWeightPrompt := promptui.Prompt{
+		Label: fmt.Sprintf("Enter new quiz weight (Current: %s-%d, %s-%d, %s-%d)", typeMap[currentWeights[0].type_id], currentWeights[0].weight, typeMap[currentWeights[1].type_id], currentWeights[1].weight, typeMap[currentWeights[2].type_id], currentWeights[2].weight),
+	}
+	quizWeight, err := quizWeightPrompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	homeworkWeightPrompt := promptui.Prompt{
+		Label: fmt.Sprintf("Enter new homework weight (Current: %s-%d, %s-%d, %s-%d)", typeMap[currentWeights[0].type_id], currentWeights[0].weight, typeMap[currentWeights[1].type_id], currentWeights[1].weight, typeMap[currentWeights[2].type_id], currentWeights[2].weight),
+	}
+	homeworkWeight, err := homeworkWeightPrompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	testWeightInt, err := strconv.Atoi(testWeight)
+	if err != nil {
+		fmt.Printf("String to int conversion failed %v\n", err)
+		return
+	}
+
+	quizWeightInt, err := strconv.Atoi(quizWeight)
+	if err != nil {
+		fmt.Printf("String to int conversion failed %v\n", err)
+		return
+	}
+
+	homeworkWeightInt, err := strconv.Atoi(homeworkWeight)
+	if err != nil {
+		fmt.Printf("String to int conversion failed %v\n", err)
+		return
+	}
+
+	if testWeightInt+quizWeightInt+homeworkWeightInt != 100 {
+		fmt.Println("Test, Quiz, and Homework weights should add to 100. Please try again.")
+		cfg.editClassWeights(className)
+	}
+
+	if err := cfg.updateClassWeights(className, testWeightInt, quizWeightInt, homeworkWeightInt); err != nil {
+		log.Fatal(err)
+	}
+
+	cfg.startUpQuestion()
+}
+
+type AssignmentWeight = struct {
+	weight  int
+	type_id int
+}
+
+func (cfg *apiConfig) getClassWeights(className string) ([]AssignmentWeight, error) {
+	const sqlGetClassWeightsStatement = `SELECT weight, type_id FROM assignment_weights
+    WHERE class_id = (SELECT id FROM classes WHERE name = ?);
+    `
+
+	rows, err := cfg.db.Query(sqlGetClassWeightsStatement, className)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var weights []AssignmentWeight
+
+	for rows.Next() {
+		var weight int
+		var type_id int
+
+		if err := rows.Scan(&weight, &type_id); err != nil {
+			return nil, err
+		}
+
+		newWeight := AssignmentWeight{weight, type_id}
+
+		weights = append(weights, newWeight)
+	}
+
+	return weights, nil
+}
+
+func (cfg *apiConfig) updateClassWeights(className string, test, quiz, homework int) error {
+	const sqlGetClassIDStatement = `SELECT id FROM classes WHERE name = ?`
+	var classID int
+	if err := cfg.db.QueryRow(sqlGetClassIDStatement, className).Scan(&classID); err != nil {
+		log.Fatal(err)
+	}
+
+	const sqlUpdateWeightsStatement = `
+      UPDATE assignment_weights SET weight = ? WHERE class_id = ? AND type_id = 1;
+      UPDATE assignment_weights SET weight = ? WHERE class_id = ? AND type_id = 2;
+      UPDATE assignment_weights SET weight = ? WHERE class_id = ? AND type_id = 3;
+    `
+
+	if _, err := cfg.db.Exec(sqlUpdateWeightsStatement, test, classID, quiz, classID, homework, classID); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Successfully upgraded class weights!")
+
+	return nil
 }

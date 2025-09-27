@@ -6,7 +6,7 @@ TODO:
 
 - [x] Allow deletion of classes
 - [x] Allow editing a class name
-- [ ] Allow editing grade weights
+- [x] Allow editing grade weights
 - [ ] Allow editing an assignment
 - [ ] Allow assignment deletion
 - [ ] Expand min column chars for class column
