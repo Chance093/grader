@@ -20,7 +20,7 @@ var data = []struct {
 	},
 	{
 		className: "Linear Algrebra",
-		grade:     "90.88",
+		grade:     "100.0",
 	},
 }
 

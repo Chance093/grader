@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS assignments (
     name TEXT NOT NULL,
     correct INTEGER NOT NULL,
     total INTEGER NOT NULL,
-    percentage REAL GENERATED ALWAYS AS (correct / total * 100),
+    percentage REAL GENERATED ALWAYS AS (CAST(correct AS REAL) / total * 100),
     class_id INTEGER NOT NULL,
     type_id INTEGER NOT NULL,
     FOREIGN KEY(class_id) REFERENCES classes(id)
