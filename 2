@@ -1,0 +1,47 @@
+package main
+
+import "fmt"
+
+var data = []struct {
+	className string
+	grade     string
+}{
+	{
+		className: "hel8kjsdf",
+		grade:     "ksjksdjf",
+	},
+	{
+		className: "heskdfjlsdkl",
+		grade:     "dls",
+	},
+}
+
+func getMaxCharLengths() (int, int) {
+	maxClassCharLength := 5
+	maxGradeCharLength := 5
+
+	for _, dat := range data {
+		if len(dat.className) > maxClassCharLength {
+			maxClassCharLength = len(dat.className)
+		}
+
+		if len(dat.grade)+1 > maxGradeCharLength {
+			maxGradeCharLength = len(dat.grade) + 1
+		}
+	}
+
+	return maxClassCharLength, maxGradeCharLength
+}
+
+func getClassGradesAscii() {
+  maxC, maxG := getMaxCharLengths()
+  headerLine := "| Class"
+  for i := 0; i < maxC - 5; i++ {
+    headerLine += " "
+  }
+  headerLine += " | Grade"
+
+  for i := 0; i < maxG - 5; i++ {
+    headerLine += " "
+  }
+}

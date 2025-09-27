@@ -25,6 +25,8 @@ func main() {
 		db: db,
 	}
 
+  getClassGradesAscii()
+
 	cfg.startUpQuestion()
 }
 

@@ -126,7 +126,7 @@ func (cfg *apiConfig) editAssignment(className string) {
 	}
 
 	if result == "Go Back" {
-		cfg.startUpQuestion()
+		cfg.selectAssignmentOption(className)
 	}
 }
 
