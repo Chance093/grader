@@ -8,21 +8,6 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-// H 80
-// H 90
-// T 70
-// Q 30
-
-// H 170 / 2 = 85
-// T 70 / 1 = 70
-// Q 30 / 1 = 30
-
-// H 85 * 0.3 = 25.5
-// T 70 * 0.5 = 35
-// Q 30 * 0.2 = 6
-
-// 66.5%
-
 type ClassAndGradeRaw = struct {
 	className string
 	grade     float64
@@ -45,6 +30,14 @@ func (cfg *apiConfig) viewOverallGrades() {
 		log.Fatalf("Error while getting classes and grades: %s", err.Error())
 	}
 
+	calculated := calculateGrades(raw)
+
+	getClassGradesAscii(calculated)
+
+	cfg.startUpQuestion()
+}
+
+func calculateGrades(raw ClassesAndGradesRaw) map[string]string {
 	classesAndGrades := make(ClassMap)
 	for _, dat := range raw {
 		value, ok := classesAndGrades[dat.className]
@@ -64,7 +57,12 @@ func (cfg *apiConfig) viewOverallGrades() {
 
 	calculated := make(map[string]string)
 	for className, weightGradeMap := range classesAndGrades {
-    var totalPercentage float64
+		var totalPercentage float64
+      
+    var totalWeight int
+    for weight := range weightGradeMap {
+      totalWeight += weight
+    }
 
 		for weight, grades := range weightGradeMap {
 			var sum float64
@@ -72,22 +70,18 @@ func (cfg *apiConfig) viewOverallGrades() {
 				sum += grade
 			}
 
-      total := sum / float64(len(grades))
-      fmt.Println(className, weight, total)
+			total := sum / float64(len(grades))
+      newWeight := float64(weight) / float64(totalWeight)
+			percent := total * newWeight
 
-      percent := total * (float64(weight) / 100)
-      fmt.Println(className, weight, percent)
-      totalPercentage += percent
+			totalPercentage += percent
 		}
 
-    fmt.Println(totalPercentage)
-    fmt.Println("==================")
+
 		calculated[className] = strconv.FormatFloat(totalPercentage, 'f', 1, 64)
 	}
 
-	getClassGradesAscii(calculated)
-
-	cfg.startUpQuestion()
+	return calculated
 }
 
 func (cfg *apiConfig) getClassesAndGradesFromDB() (ClassesAndGradesRaw, error) {
@@ -167,7 +161,22 @@ func (cfg *apiConfig) addClassToDB(className, subject string) error {
     VALUES (?, ?);
     `
 
-	if _, err := cfg.db.Exec(sqlInsertClassStatement, className, subject); err != nil {
+	res, err := cfg.db.Exec(sqlInsertClassStatement, className, subject)
+	if err != nil {
+		return err
+	}
+
+	classId, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	const sqlCreateWeightsStatement = `
+    INSERT INTO assignment_weights (weight, type_id, class_id)
+    VALUES (50, 1, ?), (20, 2, ?), (30, 3, ?);
+    `
+
+	if _, err := cfg.db.Exec(sqlCreateWeightsStatement, classId, classId, classId); err != nil {
 		return err
 	}
 
