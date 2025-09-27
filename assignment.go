@@ -11,7 +11,7 @@ import (
 func (cfg *apiConfig) selectAssignmentOption(className string) {
 	prompt := promptui.Select{
 		Label: "Choose an option",
-		Items: []string{"Add assignment", "Edit assignment", "Edit grade weights", "Go back"},
+		Items: []string{"Add assignment", "Edit assignment", "Delete assignment", "Go back"},
 	}
 
 	_, result, err := prompt.Run()
@@ -25,6 +25,8 @@ func (cfg *apiConfig) selectAssignmentOption(className string) {
 		cfg.addAssignment(className)
 	case "Edit assignment":
 		cfg.editAssignment(className)
+	case "Delete assignment":
+		cfg.deleteAssignment(className)
 	case "Go back":
 		cfg.selectClass()
 	default: // Handles cases not explicitly matched
@@ -299,4 +301,47 @@ func (cfg *apiConfig) editAssignmentTypeInDB(assignment, className, assignmentTy
 	}
 
 	return nil
+}
+
+func (cfg *apiConfig) deleteAssignment(className string) {
+	assignments, err := cfg.getAllClassAssignmentsFromDB(className)
+	if err != nil {
+		log.Fatalf("Error while getting classes : %s", err.Error())
+	}
+
+	assignments = append(assignments, "Go Back")
+
+	prompt := promptui.Select{
+		Label: "Select an assignment to delete",
+		Items: assignments,
+	}
+
+	_, result, err := prompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	if result == "Go Back" {
+		cfg.startUpQuestion()
+	}
+
+	cfg.deleteAssignmentFromDB(result, className)
+
+  fmt.Printf("Deleted assignment: %s!\n", result)
+
+	cfg.selectAssignmentOption(className)
+}
+
+func (cfg *apiConfig) deleteAssignmentFromDB(assignmentName, className string) error {
+  const sqlDeleteAssignmentStatement = `
+      DELETE FROM assignments WHERE name = ? AND class_id = 
+    (SELECT id FROM classes WHERE name = ?);
+    `
+
+	if _, err := cfg.db.Exec(sqlDeleteAssignmentStatement, assignmentName, className); err != nil {
+		return err
+	}
+
+  return nil
 }

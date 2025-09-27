@@ -7,7 +7,7 @@ TODO:
 - [x] Allow deletion of classes
 - [x] Allow editing a class name
 - [x] Allow editing grade weights
-- [ ] Allow editing an assignment
+- [x] Allow editing an assignment
 - [ ] Allow assignment deletion
 - [ ] Expand min column chars for class column
 - [ ] Create table for when no classes are available
