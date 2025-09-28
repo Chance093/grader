@@ -17,4 +17,3 @@ TODO:
 - [ ] If class but no grades, render ascii table showing class but N/A for the grade
 - [ ] Make sure correct is never more than total
 - [ ] Refactor
-
