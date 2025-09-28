@@ -113,12 +113,7 @@ func getClassLines(maxC, maxG int, data map[string]string) []string {
 	return lines
 }
 
-type GradesAscii = map[string]struct {
-	grade          string
-	assignmentType string
-}
-
-func getAssignmentGradesAscii(data GradesAscii) {
+func getAssignmentGradesAscii(data []AssignmentsRaw) {
 	maxA, maxG, maxT := getMaxCharAssLengths(data)
 	topAndBottomLine := getTopAndBottomAssLine(maxA, maxG, maxT)
 	headerLine := getHeaderAssLine(maxA, maxG, maxT)
@@ -138,14 +133,14 @@ func getAssignmentGradesAscii(data GradesAscii) {
 	fmt.Println("")
 }
 
-func getMaxCharAssLengths(data GradesAscii) (int, int, int) {
+func getMaxCharAssLengths(data []AssignmentsRaw) (int, int, int) {
 	maxAssignmentCharLength := 20
 	maxGradeCharLength := 5
 	maxAssignmentTypeCharLength := 5
 
-	for assignment, dat := range data {
-		if len(assignment) > maxAssignmentCharLength {
-			maxAssignmentCharLength = len(assignment)
+	for _, dat := range data {
+		if len(dat.assignment) > maxAssignmentCharLength {
+			maxAssignmentCharLength = len(dat.assignment)
 		}
 
 		if len(dat.grade)+1 > maxGradeCharLength {
@@ -211,35 +206,33 @@ func getBorderAssLine(maxA, maxG, maxT int) string {
 	return borderLine
 }
 
-func getAssignmentLines(maxA, maxG, maxT int, data GradesAscii) []string {
+func getAssignmentLines(maxA, maxG, maxT int, data []AssignmentsRaw) []string {
 	var lines []string
 
 	if len(data) <= 0 {
-		data = GradesAscii{
-			"No Assignments": struct {
-				grade          string
-				assignmentType string
-			}{
-				grade:          "N/A",
-				assignmentType: "N/A",
+		data = []AssignmentsRaw{
+			{
+				assignment:     "No Assignments",
+				grade:          " N/A",
+				assignmentType: " N/A",
 			},
 		}
 	}
 
-	for assignment, dat := range data {
-		assignmentLine := fmt.Sprintf(" | %s", assignment)
-		for i := 0; i < maxA-len(assignment); i++ {
+	for _, dat := range data {
+		assignmentLine := fmt.Sprintf(" | %s", dat.assignment)
+		for i := 0; i < maxA-len(dat.assignment); i++ {
 			assignmentLine += " "
 		}
 
 		assignmentLine += fmt.Sprintf(" | %s", dat.grade)
-		if assignment == "No Assignments" {
+		if dat.assignment == "No Assignments" {
 			assignmentLine += " "
 		} else {
 			assignmentLine += "%"
 		}
 
-		for i := 0; i < maxG-len(dat.grade); i++ {
+		for i := 0; i < maxG-len(dat.grade)-1; i++ {
 			assignmentLine += " "
 		}
 
@@ -248,7 +241,7 @@ func getAssignmentLines(maxA, maxG, maxT int, data GradesAscii) []string {
 			assignmentLine += " "
 		}
 
-		assignmentLine += "|"
+		assignmentLine += " |"
 
 		lines = append(lines, assignmentLine)
 	}

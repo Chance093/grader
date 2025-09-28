@@ -11,7 +11,7 @@ import (
 func (cfg *apiConfig) selectAssignmentOption(className string) {
 	prompt := promptui.Select{
 		Label: "Choose an option",
-		Items: []string{"Add assignment", "Edit assignment", "Delete assignment", "Go back"},
+		Items: []string{"View assignments", "Add assignment", "Edit assignment", "Delete assignment", "Go back"},
 	}
 
 	_, result, err := prompt.Run()
@@ -21,6 +21,8 @@ func (cfg *apiConfig) selectAssignmentOption(className string) {
 	}
 
 	switch result {
+	case "View assignments":
+		cfg.viewAssignments(className)
 	case "Add assignment":
 		cfg.addAssignment(className)
 	case "Edit assignment":
@@ -33,6 +35,62 @@ func (cfg *apiConfig) selectAssignmentOption(className string) {
 		fmt.Printf("Prompt failed %v\n", err)
 		return
 	}
+}
+
+func (cfg *apiConfig) viewAssignments(className string) {
+	raw, err := cfg.getClassAssignmentsFromDB(className)
+	if err != nil {
+		log.Fatalf("Error while getting class assignments: %s", err.Error())
+	}
+
+	getAssignmentGradesAscii(raw)
+
+	cfg.selectAssignmentOption(className)
+}
+
+type AssignmentsRaw struct {
+	assignment     string
+	grade          string
+	assignmentType string
+}
+
+func (cfg *apiConfig) getClassAssignmentsFromDB(className string) ([]AssignmentsRaw, error) {
+	const getClassAssignmentsStatement = `
+  SELECT assignments.name, 
+    assignments.percentage AS grade, 
+    assignment_types.name AS type 
+  FROM assignments
+  INNER JOIN assignment_types
+    ON assignments.type_id = assignment_types.id
+  WHERE assignments.class_id = (
+    SELECT id FROM classes WHERE name = ?
+  );
+  `
+
+	rows, err := cfg.db.Query(getClassAssignmentsStatement, className)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var assignments []AssignmentsRaw
+
+	for rows.Next() {
+		var assignment string
+		var grade float64
+		var assignmentType string
+
+		if err := rows.Scan(&assignment, &grade, &assignmentType); err != nil {
+			return nil, err
+		}
+
+		assignments = append(assignments, AssignmentsRaw{
+			assignment:     assignment,
+			grade:          strconv.FormatFloat(grade, 'f', 1, 64),
+			assignmentType: assignmentType,
+		})
+	}
+	return assignments, nil
 }
 
 func (cfg *apiConfig) addAssignment(className string) {
@@ -328,13 +386,13 @@ func (cfg *apiConfig) deleteAssignment(className string) {
 
 	cfg.deleteAssignmentFromDB(result, className)
 
-  fmt.Printf("Deleted assignment: %s!\n", result)
+	fmt.Printf("Deleted assignment: %s!\n", result)
 
 	cfg.selectAssignmentOption(className)
 }
 
 func (cfg *apiConfig) deleteAssignmentFromDB(assignmentName, className string) error {
-  const sqlDeleteAssignmentStatement = `
+	const sqlDeleteAssignmentStatement = `
       DELETE FROM assignments WHERE name = ? AND class_id = 
     (SELECT id FROM classes WHERE name = ?);
     `
@@ -343,5 +401,5 @@ func (cfg *apiConfig) deleteAssignmentFromDB(assignmentName, className string) e
 		return err
 	}
 
-  return nil
+	return nil
 }
