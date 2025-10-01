@@ -131,6 +131,8 @@ func (cfg *apiConfig) addAssignment(className string) {
 		return
 	}
 
+	cfg.validatePoints(totalPoints, correctPoints, className)
+
 	if err := cfg.addAssignmentToDB(assignmentName, assignmentType, className, totalPoints, correctPoints); err != nil {
 		log.Fatalf("Error while adding assignment to db: %s", err.Error())
 	}
@@ -138,6 +140,23 @@ func (cfg *apiConfig) addAssignment(className string) {
 	fmt.Printf("%s: %s has been added!\n", assignmentType, assignmentName)
 
 	cfg.selectAssignmentOption(className)
+}
+
+func (cfg *apiConfig) validatePoints(totalPoints, correctPoints, className string) {
+	totalPointsInt, err := strconv.Atoi(totalPoints)
+	if err != nil {
+		log.Fatalf("Failed to convert string to int: %s", err.Error())
+	}
+
+	correctPointsInt, err := strconv.Atoi(correctPoints)
+	if err != nil {
+		log.Fatalf("Failed to convert string to int: %s", err.Error())
+	}
+
+	if totalPointsInt < correctPointsInt {
+		fmt.Println("Total points must be greater than or equal to correct points")
+		cfg.addAssignment(className)
+	}
 }
 
 func (cfg *apiConfig) addAssignmentToDB(name, assignmentType, className, totalPoints, correctPoints string) error {
