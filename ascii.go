@@ -96,7 +96,7 @@ func getClassLines(maxC, maxG int, data map[string]string) []string {
 		}
 		classLine += fmt.Sprintf(" | %s", grade)
 
-		if className == "No Classes" {
+		if grade == " N/A" {
 			classLine += " "
 		} else {
 			classLine += "%"

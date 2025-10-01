@@ -32,6 +32,18 @@ func (cfg *apiConfig) viewOverallGrades() {
 
 	calculated := calculateGrades(raw)
 
+	// for the case of classes with no assignments
+	if len(calculated) == 0 {
+		classes, err := cfg.getAllClassesFromDB()
+		if err != nil {
+			log.Fatalf("Error while getting classes: %s", err.Error())
+		}
+
+		for _, class := range classes {
+			calculated[class] = " N/A"
+		}
+	}
+
 	getClassGradesAscii(calculated)
 
 	cfg.startUpQuestion()

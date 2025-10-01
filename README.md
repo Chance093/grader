@@ -12,8 +12,8 @@ TODO:
 - [x] Expand min column chars for class column
 - [x] Create table for when no classes are available
 - [x] Create ascii table for viewing assignment names, types, and grades
+- [x] If class but no grades, render ascii table showing class but N/A for the grade
 - [ ] Add main menu option
 - [ ] Add symbols to `Go back` and `Quit` and `Main Menu`
-- [ ] If class but no grades, render ascii table showing class but N/A for the grade
 - [ ] Make sure correct is never more than total
 - [ ] Refactor
