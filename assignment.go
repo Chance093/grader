@@ -11,7 +11,7 @@ import (
 func (cfg *apiConfig) selectAssignmentOption(className string) {
 	prompt := promptui.Select{
 		Label: "Choose an option",
-		Items: []string{"View assignments", "Add assignment", "Edit assignment", "Delete assignment", "Go back"},
+		Items: []string{"View assignments", "Add assignment", "Edit assignment", "Delete assignment", "Go back", "Main Menu"},
 	}
 
 	_, result, err := prompt.Run()
@@ -31,6 +31,8 @@ func (cfg *apiConfig) selectAssignmentOption(className string) {
 		cfg.deleteAssignment(className)
 	case "Go back":
 		cfg.selectClass()
+	case "Main Menu":
+		cfg.startUpQuestion()
 	default: // Handles cases not explicitly matched
 		fmt.Printf("Prompt failed %v\n", err)
 		return
@@ -190,7 +192,8 @@ func (cfg *apiConfig) editAssignment(className string) {
 		log.Fatalf("Error while getting class assignments: %s", err.Error())
 	}
 
-	assignments = append(assignments, "Go Back")
+	assignments = append(assignments, "Go back")
+	assignments = append(assignments, "Main Menu")
 
 	prompt := promptui.Select{
 		Label: "Select an assignment to edit",
@@ -203,8 +206,11 @@ func (cfg *apiConfig) editAssignment(className string) {
 		return
 	}
 
-	if assignment == "Go Back" {
+	switch assignment {
+	case "Go back":
 		cfg.selectAssignmentOption(className)
+	case "Main Menu":
+		cfg.startUpQuestion()
 	}
 
 	editPrompt := promptui.Select{
@@ -386,7 +392,8 @@ func (cfg *apiConfig) deleteAssignment(className string) {
 		log.Fatalf("Error while getting classes : %s", err.Error())
 	}
 
-	assignments = append(assignments, "Go Back")
+	assignments = append(assignments, "Go back")
+	assignments = append(assignments, "Main Menu")
 
 	prompt := promptui.Select{
 		Label: "Select an assignment to delete",
@@ -399,11 +406,14 @@ func (cfg *apiConfig) deleteAssignment(className string) {
 		return
 	}
 
-	if result == "Go Back" {
+	switch result {
+	case "Go back":
+		cfg.selectAssignmentOption(className)
+	case "Main Menu":
 		cfg.startUpQuestion()
+	default:
+		cfg.deleteAssignmentFromDB(result, className)
 	}
-
-	cfg.deleteAssignmentFromDB(result, className)
 
 	fmt.Printf("Deleted assignment: %s!\n", result)
 

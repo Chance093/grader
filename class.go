@@ -200,7 +200,7 @@ func (cfg *apiConfig) selectClass() {
 		log.Fatalf("Error while getting classes: %s", err.Error())
 	}
 
-	classes = append(classes, "Go Back")
+	classes = append(classes, "Main Menu")
 
 	prompt := promptui.Select{
 		Label: "Select a Class",
@@ -213,7 +213,7 @@ func (cfg *apiConfig) selectClass() {
 		return
 	}
 
-	if result == "Go Back" {
+	if result == "Main Menu" {
 		cfg.startUpQuestion()
 	}
 
@@ -256,7 +256,7 @@ func (cfg *apiConfig) deleteClass() {
 		log.Fatalf("Error while getting classes : %s", err.Error())
 	}
 
-	classes = append(classes, "Go Back")
+	classes = append(classes, "Main Menu")
 
 	prompt := promptui.Select{
 		Label: "Select a class to delete",
@@ -269,7 +269,7 @@ func (cfg *apiConfig) deleteClass() {
 		return
 	}
 
-	if result == "Go Back" {
+	if result == "Main Menu" {
 		cfg.startUpQuestion()
 	}
 
@@ -294,7 +294,7 @@ func (cfg *apiConfig) editClass() {
 		log.Fatalf("Error while getting classes : %s", err.Error())
 	}
 
-	classes = append(classes, "Go Back")
+	classes = append(classes, "Main Menu")
 
 	prompt := promptui.Select{
 		Label: "Select a class to edit",
@@ -307,13 +307,13 @@ func (cfg *apiConfig) editClass() {
 		return
 	}
 
-	if result == "Go Back" {
+	if result == "Main Menu" {
 		cfg.startUpQuestion()
 	}
 
 	prompt2 := promptui.Select{
 		Label: "Choose an option",
-		Items: []string{"Change class name", "Change grade weights", "Go back"},
+		Items: []string{"Change class name", "Change grade weights", "Go back", "Main Menu"},
 	}
 
 	_, result2, err := prompt2.Run()
@@ -329,6 +329,8 @@ func (cfg *apiConfig) editClass() {
 		cfg.editClassWeights(result)
 	case "Go back":
 		cfg.editClass()
+	case "Main Menu":
+		cfg.startUpQuestion()
 	default: // Handles cases not explicitly matched
 		fmt.Printf("Prompt failed %v\n", err)
 		return
