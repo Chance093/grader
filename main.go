@@ -2,11 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 
-	"github.com/manifoldco/promptui"
+	"github.com/Chance093/gradr/prompt"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -25,37 +24,33 @@ func main() {
 		db: db,
 	}
 
-	cfg.startUpQuestion()
+	cfg.displayMainMenu()
 }
 
-func (cfg *apiConfig) startUpQuestion() {
-	prompt := promptui.Select{
-		Label: "Choose an option",
-		Items: []string{"View Overall Grades", "Select a Class", "Add a Class", "Edit a Class", "Delete a Class", "Quit"},
-	}
-
-	_, result, err := prompt.Run()
+func (cfg *apiConfig) displayMainMenu() {
+	chosenOption, err := prompt.List(
+		CHOOSE_AN_OPTION,
+		[]string{VIEW_OVERALL_GRADES, SELECT_CLASS, ADD_CLASS, EDIT_CLASS, DELETE_CLASS, QUIT},
+	)
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	switch result {
-	case "View Overall Grades":
+	switch chosenOption {
+	case VIEW_OVERALL_GRADES:
 		cfg.viewOverallGrades()
-	case "Select a Class":
+	case SELECT_CLASS:
 		cfg.selectClass()
-	case "Add a Class":
+	case ADD_CLASS:
 		cfg.addClass()
-	case "Edit a Class":
+	case EDIT_CLASS:
 		cfg.editClass()
-	case "Delete a Class":
+	case DELETE_CLASS:
 		cfg.deleteClass()
-	case "Quit":
+	case QUIT:
 		quit()
-	default: // Handles cases not explicitly matched
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+	default:
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 }
 

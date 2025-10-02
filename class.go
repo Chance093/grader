@@ -5,24 +5,15 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/Chance093/gradr/ascii"
 	"github.com/manifoldco/promptui"
 )
-
-type ClassAndGradeRaw = struct {
-	className string
-	grade     float64
-	weight    int
-}
-
-type ClassesAndGradesRaw = []ClassAndGradeRaw
 
 type GradeAndWeight = struct {
 	grade  float64
 	weight int
 }
 type GradesAndWeights = []GradeAndWeight
-
-type ClassMap = map[string]map[int][]float64
 
 func (cfg *apiConfig) viewOverallGrades() {
 	raw, err := cfg.getClassesAndGradesFromDB()
@@ -44,96 +35,9 @@ func (cfg *apiConfig) viewOverallGrades() {
 		}
 	}
 
-	getClassGradesAscii(calculated)
+	ascii.DisplayClassGrades(calculated)
 
-	cfg.startUpQuestion()
-}
-
-func calculateGrades(raw ClassesAndGradesRaw) map[string]string {
-	classesAndGrades := make(ClassMap)
-	for _, dat := range raw {
-		value, ok := classesAndGrades[dat.className]
-		if ok {
-			innerVal, innerOk := value[dat.weight]
-			if innerOk {
-				classesAndGrades[dat.className][dat.weight] = append(innerVal, dat.grade)
-			} else {
-				classesAndGrades[dat.className][dat.weight] = []float64{dat.grade}
-			}
-		} else {
-			classesAndGrades[dat.className] = map[int][]float64{
-				dat.weight: {dat.grade},
-			}
-		}
-	}
-
-	calculated := make(map[string]string)
-	for className, weightGradeMap := range classesAndGrades {
-		var totalPercentage float64
-
-		var totalWeight int
-		for weight := range weightGradeMap {
-			totalWeight += weight
-		}
-
-		for weight, grades := range weightGradeMap {
-			var sum float64
-			for _, grade := range grades {
-				sum += grade
-			}
-
-			total := sum / float64(len(grades))
-			newWeight := float64(weight) / float64(totalWeight)
-			percent := total * newWeight
-
-			totalPercentage += percent
-		}
-
-		calculated[className] = strconv.FormatFloat(totalPercentage, 'f', 1, 64)
-	}
-
-	return calculated
-}
-
-func (cfg *apiConfig) getClassesAndGradesFromDB() (ClassesAndGradesRaw, error) {
-	query := `
-  SELECT 
-    classes.name AS class_name, 
-    assignments.percentage AS assignment_grade,
-    assignment_weights.weight AS assignment_weight
-  FROM classes
-  INNER JOIN assignments
-    ON assignments.class_id = classes.id
-  INNER JOIN assignment_weights
-    ON assignment_weights.class_id = classes.id 
-    AND assignment_weights.type_id = assignments.type_id;
-  `
-
-	rows, err := cfg.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var classesAndGrades ClassesAndGradesRaw
-
-	for rows.Next() {
-		var className string
-		var grade float64
-		var weight int
-
-		if err := rows.Scan(&className, &grade, &weight); err != nil {
-			return nil, err
-		}
-
-		classesAndGrades = append(classesAndGrades, ClassAndGradeRaw{
-			className,
-			grade,
-			weight,
-		})
-	}
-
-	return classesAndGrades, nil
+	cfg.displayMainMenu()
 }
 
 func (cfg *apiConfig) addClass() {
@@ -163,7 +67,7 @@ func (cfg *apiConfig) addClass() {
 
 	fmt.Printf("%s added!\n", className)
 
-	cfg.startUpQuestion()
+	cfg.displayMainMenu()
 }
 
 func (cfg *apiConfig) addClassToDB(className, subject string) error {
@@ -214,7 +118,7 @@ func (cfg *apiConfig) selectClass() {
 	}
 
 	if result == "Main Menu" {
-		cfg.startUpQuestion()
+		cfg.displayMainMenu()
 	}
 
 	cfg.selectAssignmentOption(result)
@@ -270,14 +174,14 @@ func (cfg *apiConfig) deleteClass() {
 	}
 
 	if result == "Main Menu" {
-		cfg.startUpQuestion()
+		cfg.displayMainMenu()
 	}
 
 	cfg.deleteClassFromDB(result)
 
 	fmt.Printf("Deleted %s!\n", result)
 
-	cfg.startUpQuestion()
+	cfg.displayMainMenu()
 }
 
 func (cfg *apiConfig) deleteClassFromDB(className string) {
@@ -308,7 +212,7 @@ func (cfg *apiConfig) editClass() {
 	}
 
 	if result == "Main Menu" {
-		cfg.startUpQuestion()
+		cfg.displayMainMenu()
 	}
 
 	prompt2 := promptui.Select{
@@ -330,7 +234,7 @@ func (cfg *apiConfig) editClass() {
 	case "Go back":
 		cfg.editClass()
 	case "Main Menu":
-		cfg.startUpQuestion()
+		cfg.displayMainMenu()
 	default: // Handles cases not explicitly matched
 		fmt.Printf("Prompt failed %v\n", err)
 		return
@@ -351,7 +255,7 @@ func (cfg *apiConfig) editClassName(oldClassName string) {
 
 	fmt.Printf("Changed class name '%s' to '%s'!\n", oldClassName, newClassName)
 
-	cfg.startUpQuestion()
+	cfg.displayMainMenu()
 }
 
 func (cfg *apiConfig) editClassNameInDB(oldClassName, newClassName string) {
@@ -428,7 +332,7 @@ func (cfg *apiConfig) editClassWeights(className string) {
 		log.Fatal(err)
 	}
 
-	cfg.startUpQuestion()
+	cfg.displayMainMenu()
 }
 
 type AssignmentWeight = struct {

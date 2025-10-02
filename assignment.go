@@ -5,6 +5,8 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/Chance093/gradr/ascii"
+	"github.com/Chance093/gradr/types"
 	"github.com/manifoldco/promptui"
 )
 
@@ -32,7 +34,7 @@ func (cfg *apiConfig) selectAssignmentOption(className string) {
 	case "Go back":
 		cfg.selectClass()
 	case "Main Menu":
-		cfg.startUpQuestion()
+		cfg.displayMainMenu()
 	default: // Handles cases not explicitly matched
 		fmt.Printf("Prompt failed %v\n", err)
 		return
@@ -45,18 +47,13 @@ func (cfg *apiConfig) viewAssignments(className string) {
 		log.Fatalf("Error while getting class assignments: %s", err.Error())
 	}
 
-	getAssignmentGradesAscii(raw)
+	ascii.DisplayAssignmentGrades(raw)
 
 	cfg.selectAssignmentOption(className)
 }
 
-type AssignmentsRaw struct {
-	assignment     string
-	grade          string
-	assignmentType string
-}
 
-func (cfg *apiConfig) getClassAssignmentsFromDB(className string) ([]AssignmentsRaw, error) {
+func (cfg *apiConfig) getClassAssignmentsFromDB(className string) ([]types.AssignmentsRaw, error) {
 	const getClassAssignmentsStatement = `
   SELECT assignments.name, 
     assignments.percentage AS grade, 
@@ -75,7 +72,7 @@ func (cfg *apiConfig) getClassAssignmentsFromDB(className string) ([]Assignments
 	}
 	defer rows.Close()
 
-	var assignments []AssignmentsRaw
+	var assignments []types.AssignmentsRaw
 
 	for rows.Next() {
 		var assignment string
@@ -86,10 +83,10 @@ func (cfg *apiConfig) getClassAssignmentsFromDB(className string) ([]Assignments
 			return nil, err
 		}
 
-		assignments = append(assignments, AssignmentsRaw{
-			assignment:     assignment,
-			grade:          strconv.FormatFloat(grade, 'f', 1, 64),
-			assignmentType: assignmentType,
+		assignments = append(assignments, types.AssignmentsRaw{
+			Assignment:     assignment,
+			Grade:          strconv.FormatFloat(grade, 'f', 1, 64),
+			AssignmentType: assignmentType,
 		})
 	}
 	return assignments, nil
@@ -210,7 +207,7 @@ func (cfg *apiConfig) editAssignment(className string) {
 	case "Go back":
 		cfg.selectAssignmentOption(className)
 	case "Main Menu":
-		cfg.startUpQuestion()
+		cfg.displayMainMenu()
 	}
 
 	editPrompt := promptui.Select{
@@ -410,7 +407,7 @@ func (cfg *apiConfig) deleteAssignment(className string) {
 	case "Go back":
 		cfg.selectAssignmentOption(className)
 	case "Main Menu":
-		cfg.startUpQuestion()
+		cfg.displayMainMenu()
 	default:
 		cfg.deleteAssignmentFromDB(result, className)
 	}
