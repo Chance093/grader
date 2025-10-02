@@ -52,8 +52,7 @@ func (cfg *apiConfig) viewAssignments(className string) {
 	cfg.selectAssignmentOption(className)
 }
 
-
-func (cfg *apiConfig) getClassAssignmentsFromDB(className string) ([]types.AssignmentsRaw, error) {
+func (cfg *apiConfig) getClassAssignmentsFromDB(className string) (types.Assignments, error) {
 	const getClassAssignmentsStatement = `
   SELECT assignments.name, 
     assignments.percentage AS grade, 
@@ -72,21 +71,21 @@ func (cfg *apiConfig) getClassAssignmentsFromDB(className string) ([]types.Assig
 	}
 	defer rows.Close()
 
-	var assignments []types.AssignmentsRaw
+	var assignments types.Assignments
 
 	for rows.Next() {
-		var assignment string
-		var grade float64
-		var assignmentType string
+		var Name string
+		var Grade float64
+		var Type string
 
-		if err := rows.Scan(&assignment, &grade, &assignmentType); err != nil {
+		if err := rows.Scan(&Name, &Grade, &Type); err != nil {
 			return nil, err
 		}
 
-		assignments = append(assignments, types.AssignmentsRaw{
-			Assignment:     assignment,
-			Grade:          strconv.FormatFloat(grade, 'f', 1, 64),
-			AssignmentType: assignmentType,
+		assignments = append(assignments, types.Assignment{
+			Name:  Name,
+			Grade: strconv.FormatFloat(Grade, 'f', 1, 64),
+			Type:  Type,
 		})
 	}
 	return assignments, nil

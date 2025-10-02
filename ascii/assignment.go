@@ -6,12 +6,12 @@ import (
 	"github.com/Chance093/gradr/types"
 )
 
-func DisplayAssignmentGrades(data []types.AssignmentsRaw) {
-	maxA, maxG, maxT := getMaxCharAssLengths(data)
-	topAndBottomLine := getTopAndBottomAssLine(maxA, maxG, maxT)
-	headerLine := getHeaderAssLine(maxA, maxG, maxT)
-	borderLine := getBorderAssLine(maxA, maxG, maxT)
-	assignmentLines := getAssignmentLines(maxA, maxG, maxT, data)
+func DisplayAssignmentGrades(assignments types.Assignments) {
+	maxA, maxG, maxT := getAssignmentColumnLengths(assignments)
+	topAndBottomLine := getHorizontalBorderLine([]int{maxA, maxG, maxT})
+	headerLine := getHeaderLine([]int{maxA, maxG, maxT}, []string{"Assignment", "Grade", "Type"})
+	borderLine := getHeaderBorderLine([]int{maxA, maxG, maxT})
+	assignmentLines := getAssignmentLines(maxA, maxG, maxT, assignments)
 
 	fmt.Println("")
 	fmt.Println(topAndBottomLine)
@@ -26,115 +26,66 @@ func DisplayAssignmentGrades(data []types.AssignmentsRaw) {
 	fmt.Println("")
 }
 
-func getMaxCharAssLengths(data []types.AssignmentsRaw) (int, int, int) {
-	maxAssignmentCharLength := 20
-	maxGradeCharLength := 5
-	maxAssignmentTypeCharLength := 5
+func getAssignmentColumnLengths(assignments types.Assignments) (int, int, int) {
+	maxA := INIT_MAX_ASSIGNMENT_COLUMN_LENGTH
+	maxG := INIT_MAX_GRADE_COLUMN_LENGTH
+	maxT := INIT_MAX_TYPE_COLUMN_LENGTH
 
-	for _, dat := range data {
-		if len(dat.Assignment) > maxAssignmentCharLength {
-			maxAssignmentCharLength = len(dat.Assignment)
+	for _, assignment := range assignments {
+		if len(assignment.Name) > maxA {
+			maxA = len(assignment.Name)
 		}
 
-		if len(dat.Grade)+1 > maxGradeCharLength {
-			maxGradeCharLength = len(dat.Grade) + 1
+		if len(assignment.Grade)+1 > maxG {
+			maxG = len(assignment.Grade) + 1
 		}
 
-		if len(dat.AssignmentType) > maxAssignmentTypeCharLength {
-			maxAssignmentTypeCharLength = len(dat.AssignmentType)
+		if len(assignment.Type) > maxT {
+			maxT = len(assignment.Type)
 		}
 	}
 
-	return maxAssignmentCharLength, maxGradeCharLength, maxAssignmentTypeCharLength
+	return maxA, maxG, maxT
 }
 
-func getTopAndBottomAssLine(maxA, maxG, maxT int) string {
-	total := 2 + maxA + 3 + maxG + 3 + maxT + 2
-
-	topAndBottomLine := " "
-	for range total {
-		topAndBottomLine += "="
-	}
-
-	return topAndBottomLine
-}
-
-func getHeaderAssLine(maxA, maxG, maxT int) string {
-	headerLine := " | Assignment"
-	for i := 0; i < maxA-10; i++ {
-		headerLine += " "
-	}
-
-	headerLine += " | Grade"
-	for i := 0; i < maxG-5; i++ {
-		headerLine += " "
-	}
-
-	headerLine += " | Type"
-	for i := 0; i < maxT-4; i++ {
-		headerLine += " "
-	}
-	headerLine += " |"
-
-	return headerLine
-}
-
-func getBorderAssLine(maxA, maxG, maxT int) string {
-	borderLine := " |"
-	for i := 0; i < maxA+2; i++ {
-		borderLine += "-"
-	}
-
-	borderLine += "|"
-	for i := 0; i < maxG+2; i++ {
-		borderLine += "-"
-	}
-
-	borderLine += "|"
-	for i := 0; i < maxT+2; i++ {
-		borderLine += "-"
-	}
-	borderLine += "|"
-
-	return borderLine
-}
-
-func getAssignmentLines(maxA, maxG, maxT int, data []types.AssignmentsRaw) []string {
+func getAssignmentLines(maxA, maxG, maxT int, assignments types.Assignments) []string {
 	var lines []string
 
-	if len(data) <= 0 {
-		data = []types.AssignmentsRaw{
+	// handle case of no assignments
+	if len(assignments) <= 0 {
+		assignments = types.Assignments{
 			{
-				Assignment:     "No Assignments",
-				Grade:          " N/A",
-				AssignmentType: " N/A",
+				Name:  "No Assignments",
+				Grade: " N/A",
+				Type:  " N/A",
 			},
 		}
 	}
 
-	for _, dat := range data {
-		assignmentLine := fmt.Sprintf(" | %s", dat.Assignment)
-		for i := 0; i < maxA-len(dat.Assignment); i++ {
-			assignmentLine += " "
+	for _, assignment := range assignments {
+		assignmentLine := WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + assignment.Name
+		for i := 0; i < maxA-len(assignment.Name); i++ {
+			assignmentLine += WHITE_SPACE
 		}
+		assignmentLine += WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + assignment.Grade
 
-		assignmentLine += fmt.Sprintf(" | %s", dat.Grade)
-		if dat.Assignment == "No Assignments" {
-			assignmentLine += " "
+		// add percent if there is a grade
+		if assignment.Grade == " N/A" {
+			assignmentLine += WHITE_SPACE
 		} else {
 			assignmentLine += "%"
 		}
 
-		for i := 0; i < maxG-len(dat.Grade)-1; i++ {
-			assignmentLine += " "
+		for i := 0; i < maxG-len(assignment.Grade)-1; i++ {
+			assignmentLine += WHITE_SPACE
+		}
+		assignmentLine += WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + assignment.Type
+
+		for i := 0; i < maxT-len(assignment.Type); i++ {
+			assignmentLine += WHITE_SPACE
 		}
 
-		assignmentLine += fmt.Sprintf(" | %s", dat.AssignmentType)
-		for i := 0; i < maxT-len(dat.AssignmentType); i++ {
-			assignmentLine += " "
-		}
-
-		assignmentLine += " |"
+		assignmentLine += WHITE_SPACE + VERTICAL_BORDER_CHAR
 
 		lines = append(lines, assignmentLine)
 	}

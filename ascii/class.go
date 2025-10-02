@@ -6,21 +6,11 @@ import (
 	"github.com/Chance093/gradr/types"
 )
 
-/*
-e.g.
-
-	===============================
-	| Class               | Grade |
-	|---------------------|-------|
-	| Algrebra            | 90.0% |
-	| Calculus            | 90.0% |
-	===============================
-*/
 func DisplayClassGrades(data map[string]string) {
-	maxC, maxG := getMaxCharLengths(data)
-	topAndBottomLine := getHorizontalBorder(maxC, maxG)
-	headerLine := getHeaderLine(maxC, maxG)
-	headerBorderLine := getHeaderBorderLine(maxC, maxG)
+	maxC, maxG := getClassColumnLengths(data)
+	topAndBottomLine := getHorizontalBorderLine([]int{maxC, maxG})
+	headerLine := getHeaderLine([]int{maxC, maxG}, []string{"Class", "Grade"})
+	headerBorderLine := getHeaderBorderLine([]int{maxC, maxG})
 	classLines := getClassLines(maxC, maxG, data)
 
 	fmt.Println("")
@@ -36,7 +26,7 @@ func DisplayClassGrades(data map[string]string) {
 	fmt.Println("")
 }
 
-func getMaxCharLengths(data types.ClassAndGradeMap) (int, int) {
+func getClassColumnLengths(data types.ClassAndGradeMap) (int, int) {
 	maxC := INIT_MAX_CLASS_COLUMN_LENGTH
 	maxG := INIT_MAX_GRADE_COLUMN_LENGTH
 
@@ -53,58 +43,10 @@ func getMaxCharLengths(data types.ClassAndGradeMap) (int, int) {
 	return maxC, maxG
 }
 
-// e.g. ======================
-func getHorizontalBorder(maxC, maxG int) string {
-	totalChars := 2 + maxC + 3 + maxG + 2
-
-	horizontalBorder := WHITE_SPACE
-	for range totalChars {
-		horizontalBorder += HORIZONTAL_BORDER_CHAR
-	}
-
-	return horizontalBorder
-}
-
-// e.g. | Class             | Grade |
-func getHeaderLine(maxC, maxG int) string {
-	headerLine := WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + "Class"
-	for i := 0; i < maxC-5; i++ {
-		headerLine += WHITE_SPACE
-	}
-	headerLine += WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + "Grade"
-
-	for i := 0; i < maxG-5; i++ {
-		headerLine += WHITE_SPACE
-	}
-	headerLine += WHITE_SPACE + VERTICAL_BORDER_CHAR
-
-	return headerLine
-}
-
-// e.g. |----------------|------|
-func getHeaderBorderLine(maxC, maxG int) string {
-	headerBorderLine := WHITE_SPACE + VERTICAL_BORDER_CHAR
-	for i := 0; i < maxC+2; i++ {
-		headerBorderLine += HEADER_BORDER_CHAR
-	}
-
-	headerBorderLine += VERTICAL_BORDER_CHAR
-	for i := 0; i < maxG+2; i++ {
-		headerBorderLine += HEADER_BORDER_CHAR
-	}
-	headerBorderLine += VERTICAL_BORDER_CHAR
-
-	return headerBorderLine
-}
-
-/*
-e.g.
- | Algebra          | 90.0% |
- | Calculus         | 93.8% |
-*/
 func getClassLines(maxC, maxG int, data types.ClassAndGradeMap) []string {
 	var lines []string
 
+	// handle case of no classes
 	if len(data) <= 0 {
 		data = map[string]string{
 			"No Classes": " N/A",
@@ -118,6 +60,7 @@ func getClassLines(maxC, maxG int, data types.ClassAndGradeMap) []string {
 		}
 		classLine += WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + grade
 
+		// add percent if there is a grade
 		if grade == " N/A" {
 			classLine += WHITE_SPACE
 		} else {
