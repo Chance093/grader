@@ -17,4 +17,5 @@ TODO:
 - [x] Add main menu option
 - [ ] Fix add assignment bug that adds multiple assignments when it fails validation
 - [ ] Add symbols to `Go back` and `Quit` and `Main Menu`
+- [ ] Change border chars in ascii
 - [ ] Refactor
