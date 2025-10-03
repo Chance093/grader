@@ -9,7 +9,6 @@ import (
 	"github.com/Chance093/gradr/ascii"
 	"github.com/Chance093/gradr/constants"
 	"github.com/Chance093/gradr/prompt"
-	"github.com/manifoldco/promptui"
 )
 
 func (cfg *apiConfig) viewAssignments(className string) {
@@ -99,7 +98,7 @@ func (cfg *apiConfig) editAssignment(className string) {
 		quit()
 	}
 
-  result, err := prompt.List(constants.CHOOSE_OPTION_EDIT, constants.EDIT_ASSIGNMENT_OPTS)
+	result, err := prompt.List(constants.CHOOSE_OPTION_EDIT, constants.EDIT_ASSIGNMENT_OPTS)
 	if err != nil {
 		log.Fatalf("Prompt failed %v\n", err)
 	}
@@ -119,13 +118,9 @@ func (cfg *apiConfig) editAssignment(className string) {
 }
 
 func (cfg *apiConfig) editAssignmentName(assignment, className string) {
-	prompt := promptui.Prompt{
-		Label: "Enter new assignment name",
-	}
-	newName, err := prompt.Run()
+	newName, err := prompt.Input(constants.ENTER_ASSIGNMENT_NAME)
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
 	if err := cfg.editAssignmentNameInDB(assignment, newName, className); err != nil {
@@ -135,77 +130,33 @@ func (cfg *apiConfig) editAssignmentName(assignment, className string) {
 	fmt.Printf("Assignment name updated to: %s\n", newName)
 }
 
-func (cfg *apiConfig) editAssignmentNameInDB(oldName, newName, className string) error {
-	const sqlUpdateAssignmentNameStatement = `
-      UPDATE assignments SET name = ? WHERE name = ? AND 
-    class_id = (SELECT id FROM classes WHERE name = ?);
-    `
-
-	if _, err := cfg.db.Exec(sqlUpdateAssignmentNameStatement, newName, oldName, className); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (cfg *apiConfig) editAssignmentGrade(assignment, className string) {
-	totalPrompt := promptui.Prompt{
-		Label: "Enter the total amount of points possible",
-	}
-	total, err := totalPrompt.Run()
+	totalPoints, err := prompt.Input(constants.ENTER_TOTAL_POINTS)
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
+	}
+	correctPoints, err := prompt.Input(constants.ENTER_CORRECT_POINTS)
+	if err != nil {
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	correctPrompt := promptui.Prompt{
-		Label: "Enter the total amount of points you got correct",
-	}
-	correct, err := correctPrompt.Run()
-	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+	if err := validatePoints(totalPoints, correctPoints, className); err != nil {
+		fmt.Println(err.Error())
+		cfg.editAssignmentGrade(assignment, className)
+		return // explicit return so when the callstack clears, it doesn't make a ton of bad assignments
 	}
 
-	totalInt, err := strconv.Atoi(total)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	correctInt, err := strconv.Atoi(correct)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := cfg.editAssignmentGradeInDB(assignment, className, totalInt, correctInt); err != nil {
+	if err := cfg.editAssignmentGradeInDB(assignment, className, totalPoints, correctPoints); err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println("Assignment grade updated!")
 }
 
-func (cfg *apiConfig) editAssignmentGradeInDB(assignment, className string, total, correct int) error {
-	const sqlUpdateAssignmentGradeStatement = `
-      UPDATE assignments SET correct = ?, total = ? WHERE name = ? AND 
-    class_id = (SELECT id FROM classes WHERE name = ?);
-    `
-
-	if _, err := cfg.db.Exec(sqlUpdateAssignmentGradeStatement, correct, total, assignment, className); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (cfg *apiConfig) editAssignmentType(assignment, className string) {
-	assignmentTypePrompt := promptui.Select{
-		Label: "Choose an assignment type",
-		Items: []string{"Test", "Quiz", "Homework"},
-	}
-	_, assignmentType, err := assignmentTypePrompt.Run()
+	assignmentType, err := prompt.List(constants.CHOOSE_ASSIGNMENT_TYPE, constants.ASSIGNMENT_TYPES)
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
 	if err := cfg.editAssignmentTypeInDB(assignment, className, assignmentType); err != nil {
@@ -215,68 +166,33 @@ func (cfg *apiConfig) editAssignmentType(assignment, className string) {
 	fmt.Printf("Assignment type updated to: %s\n", assignmentType)
 }
 
-func (cfg *apiConfig) editAssignmentTypeInDB(assignment, className, assignmentType string) error {
-	const sqlUpdateAssignmentNameStatement = `
-      UPDATE assignments SET type_id = ? WHERE name = ? AND 
-    class_id = (SELECT id FROM classes WHERE name = ?);
-    `
-
-	typeMap := map[string]int{
-		"Test":     1,
-		"Quiz":     2,
-		"Homework": 3,
-	}
-
-	if _, err := cfg.db.Exec(sqlUpdateAssignmentNameStatement, typeMap[assignmentType], assignment, className); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (cfg *apiConfig) deleteAssignment(className string) {
 	assignments, err := cfg.getAllClassAssignmentsFromDB(className)
 	if err != nil {
 		log.Fatalf("Error while getting classes : %s", err.Error())
 	}
 
-	assignments = append(assignments, "Go back")
-	assignments = append(assignments, "Main Menu")
+	assignments = append(assignments, constants.GO_BACK)
+	assignments = append(assignments, constants.MAIN_MENU)
+	assignments = append(assignments, constants.QUIT)
 
-	prompt := promptui.Select{
-		Label: "Select an assignment to delete",
-		Items: assignments,
-	}
-
-	_, result, err := prompt.Run()
+	assignment, err := prompt.List(constants.SELECT_ASSIGNMENT_DELETE, assignments)
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	switch result {
-	case "Go back":
-		cfg.selectAssignmentOption(className)
-	case "Main Menu":
+	switch assignment {
+	case constants.GO_BACK:
+		cfg.displayClassMenu(className)
+	case constants.MAIN_MENU:
 		cfg.displayMainMenu()
+	case constants.QUIT:
+		quit()
 	default:
-		cfg.deleteAssignmentFromDB(result, className)
+		cfg.deleteAssignmentFromDB(assignment, className)
 	}
 
-	fmt.Printf("Deleted assignment: %s!\n", result)
+	fmt.Printf("Deleted assignment: %s!\n", assignment)
 
-	cfg.selectAssignmentOption(className)
-}
-
-func (cfg *apiConfig) deleteAssignmentFromDB(assignmentName, className string) error {
-	const sqlDeleteAssignmentStatement = `
-      DELETE FROM assignments WHERE name = ? AND class_id = 
-    (SELECT id FROM classes WHERE name = ?);
-    `
-
-	if _, err := cfg.db.Exec(sqlDeleteAssignmentStatement, assignmentName, className); err != nil {
-		return err
-	}
-
-	return nil
+	cfg.displayClassMenu(className)
 }

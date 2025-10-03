@@ -7,6 +7,9 @@ import (
 	"github.com/Chance093/gradr/types"
 )
 
+// TODO: Make this file its own db package
+
+// TODO: extract these types into types package
 type ClassAndGradeRaw = struct {
 	className string
 	grade     float64
@@ -196,4 +199,62 @@ func (cfg *apiConfig) getAllClassAssignmentsFromDB(className string) ([]string, 
 	}
 
 	return assignments, nil
+}
+
+func (cfg *apiConfig) editAssignmentNameInDB(oldName, newName, className string) error {
+	const sqlUpdateAssignmentNameStatement = `
+      UPDATE assignments SET name = ? WHERE name = ? AND 
+    class_id = (SELECT id FROM classes WHERE name = ?);
+    `
+
+	if _, err := cfg.db.Exec(sqlUpdateAssignmentNameStatement, newName, oldName, className); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (cfg *apiConfig) editAssignmentGradeInDB(assignment, className, total, correct string) error {
+	const sqlUpdateAssignmentGradeStatement = `
+      UPDATE assignments SET correct = ?, total = ? WHERE name = ? AND 
+    class_id = (SELECT id FROM classes WHERE name = ?);
+    `
+
+	if _, err := cfg.db.Exec(sqlUpdateAssignmentGradeStatement, correct, total, assignment, className); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (cfg *apiConfig) editAssignmentTypeInDB(assignment, className, assignmentType string) error {
+	const sqlUpdateAssignmentNameStatement = `
+      UPDATE assignments SET type_id = ? WHERE name = ? AND 
+    class_id = (SELECT id FROM classes WHERE name = ?);
+    `
+
+	typeMap := map[string]int{
+		"Test":     1,
+		"Quiz":     2,
+		"Homework": 3,
+	}
+
+	if _, err := cfg.db.Exec(sqlUpdateAssignmentNameStatement, typeMap[assignmentType], assignment, className); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (cfg *apiConfig) deleteAssignmentFromDB(assignmentName, className string) error {
+	const sqlDeleteAssignmentStatement = `
+      DELETE FROM assignments WHERE name = ? AND class_id = 
+    (SELECT id FROM classes WHERE name = ?);
+    `
+
+	if _, err := cfg.db.Exec(sqlDeleteAssignmentStatement, assignmentName, className); err != nil {
+		return err
+	}
+
+	return nil
 }
