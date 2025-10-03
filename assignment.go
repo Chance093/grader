@@ -1,135 +1,52 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
 
 	"github.com/Chance093/gradr/ascii"
-	"github.com/Chance093/gradr/types"
+	"github.com/Chance093/gradr/constants"
+	"github.com/Chance093/gradr/prompt"
 	"github.com/manifoldco/promptui"
 )
 
-func (cfg *apiConfig) selectAssignmentOption(className string) {
-	prompt := promptui.Select{
-		Label: "Choose an option",
-		Items: []string{"View assignments", "Add assignment", "Edit assignment", "Delete assignment", "Go back", "Main Menu"},
-	}
-
-	_, result, err := prompt.Run()
-	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
-	}
-
-	switch result {
-	case "View assignments":
-		cfg.viewAssignments(className)
-	case "Add assignment":
-		cfg.addAssignment(className)
-	case "Edit assignment":
-		cfg.editAssignment(className)
-	case "Delete assignment":
-		cfg.deleteAssignment(className)
-	case "Go back":
-		cfg.selectClass()
-	case "Main Menu":
-		cfg.displayMainMenu()
-	default: // Handles cases not explicitly matched
-		fmt.Printf("Prompt failed %v\n", err)
-		return
-	}
-}
-
 func (cfg *apiConfig) viewAssignments(className string) {
-	raw, err := cfg.getClassAssignmentsFromDB(className)
+	assignments, err := cfg.getClassAssignmentsFromDB(className)
 	if err != nil {
 		log.Fatalf("Error while getting class assignments: %s", err.Error())
 	}
 
-	ascii.DisplayAssignmentGrades(raw)
+	ascii.DisplayAssignmentGrades(assignments)
 
-	cfg.selectAssignmentOption(className)
-}
-
-func (cfg *apiConfig) getClassAssignmentsFromDB(className string) (types.Assignments, error) {
-	const getClassAssignmentsStatement = `
-  SELECT assignments.name, 
-    assignments.percentage AS grade, 
-    assignment_types.name AS type 
-  FROM assignments
-  INNER JOIN assignment_types
-    ON assignments.type_id = assignment_types.id
-  WHERE assignments.class_id = (
-    SELECT id FROM classes WHERE name = ?
-  );
-  `
-
-	rows, err := cfg.db.Query(getClassAssignmentsStatement, className)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var assignments types.Assignments
-
-	for rows.Next() {
-		var Name string
-		var Grade float64
-		var Type string
-
-		if err := rows.Scan(&Name, &Grade, &Type); err != nil {
-			return nil, err
-		}
-
-		assignments = append(assignments, types.Assignment{
-			Name:  Name,
-			Grade: strconv.FormatFloat(Grade, 'f', 1, 64),
-			Type:  Type,
-		})
-	}
-	return assignments, nil
+	cfg.displayClassMenu(className)
 }
 
 func (cfg *apiConfig) addAssignment(className string) {
-	assignmentPrompt := promptui.Prompt{
-		Label: "Enter assignment name",
-	}
-	assignmentName, err := assignmentPrompt.Run()
+	// capture inputs
+	assignmentName, err := prompt.Input(constants.ENTER_ASSIGNMENT_NAME)
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
+	}
+	assignmentType, err := prompt.List(constants.CHOOSE_ASSIGNMENT_TYPE, constants.ASSIGNMENT_TYPES)
+	if err != nil {
+		log.Fatalf("Prompt failed %v\n", err)
+	}
+	totalPoints, err := prompt.Input(constants.ENTER_TOTAL_POINTS)
+	if err != nil {
+		log.Fatalf("Prompt failed %v\n", err)
+	}
+	correctPoints, err := prompt.Input(constants.ENTER_CORRECT_POINTS)
+	if err != nil {
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	assignmentTypePrompt := promptui.Select{
-		Label: "Choose an assignment type",
-		Items: []string{"Test", "Quiz", "Homework"},
+	if err := validatePoints(totalPoints, correctPoints, className); err != nil {
+		fmt.Println(err.Error())
+		cfg.addAssignment(className)
+		return // explicit return so when the callstack clears, it doesn't make a ton of bad assignments
 	}
-	_, assignmentType, err := assignmentTypePrompt.Run()
-	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
-	}
-
-	totalPointsPrompt := promptui.Prompt{
-		Label: "Enter the total amount of points possible",
-	}
-	totalPoints, err := totalPointsPrompt.Run()
-	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
-	}
-
-	correctPointsPrompt := promptui.Prompt{
-		Label: "Enter the total amount of points you got correct",
-	}
-	correctPoints, err := correctPointsPrompt.Run()
-	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
-	}
-
-	cfg.validatePoints(totalPoints, correctPoints, className)
 
 	if err := cfg.addAssignmentToDB(assignmentName, assignmentType, className, totalPoints, correctPoints); err != nil {
 		log.Fatalf("Error while adding assignment to db: %s", err.Error())
@@ -137,10 +54,10 @@ func (cfg *apiConfig) addAssignment(className string) {
 
 	fmt.Printf("%s: %s has been added!\n", assignmentType, assignmentName)
 
-	cfg.selectAssignmentOption(className)
+	cfg.displayClassMenu(className)
 }
 
-func (cfg *apiConfig) validatePoints(totalPoints, correctPoints, className string) {
+func validatePoints(totalPoints, correctPoints, className string) error {
 	totalPointsInt, err := strconv.Atoi(totalPoints)
 	if err != nil {
 		log.Fatalf("Failed to convert string to int: %s", err.Error())
@@ -152,31 +69,7 @@ func (cfg *apiConfig) validatePoints(totalPoints, correctPoints, className strin
 	}
 
 	if totalPointsInt < correctPointsInt {
-		fmt.Println("Total points must be greater than or equal to correct points")
-		cfg.addAssignment(className)
-	}
-}
-
-func (cfg *apiConfig) addAssignmentToDB(name, assignmentType, className, totalPoints, correctPoints string) error {
-	// take the class name and type name, and find their id's in the db
-	const sqlQueryIdsStatement = `
-    SELECT c.id, t.id
-    FROM classes c
-    CROSS JOIN assignment_types t
-    WHERE c.name = ? AND t.name = ?;
-    `
-	var classID, typeID int
-	if err := cfg.db.QueryRow(sqlQueryIdsStatement, className, assignmentType).Scan(&classID, &typeID); err != nil {
-		log.Fatal(err)
-	}
-
-	// create assignment that is associated with class
-	const sqlInsertAssignmentStatement = `
-      INSERT INTO assignments (name, type_id, class_id, total, correct)
-    VALUES (?, ?, ?, ?, ?);
-    `
-	if _, err := cfg.db.Exec(sqlInsertAssignmentStatement, name, typeID, classID, totalPoints, correctPoints); err != nil {
-		return err
+		return errors.New("Total points must be greater than or equal to correct points")
 	}
 
 	return nil
@@ -188,82 +81,41 @@ func (cfg *apiConfig) editAssignment(className string) {
 		log.Fatalf("Error while getting class assignments: %s", err.Error())
 	}
 
-	assignments = append(assignments, "Go back")
-	assignments = append(assignments, "Main Menu")
+	assignments = append(assignments, constants.GO_BACK)
+	assignments = append(assignments, constants.MAIN_MENU)
+	assignments = append(assignments, constants.QUIT)
 
-	prompt := promptui.Select{
-		Label: "Select an assignment to edit",
-		Items: assignments,
-	}
-
-	_, assignment, err := prompt.Run()
+	assignment, err := prompt.List(constants.SELECT_ASSIGNMENT_EDIT, assignments)
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
 	switch assignment {
-	case "Go back":
-		cfg.selectAssignmentOption(className)
-	case "Main Menu":
+	case constants.GO_BACK:
+		cfg.displayClassMenu(className)
+	case constants.MAIN_MENU:
 		cfg.displayMainMenu()
+	case constants.QUIT:
+		quit()
 	}
 
-	editPrompt := promptui.Select{
-		Label: "Choose an option to edit",
-		Items: []string{"Name", "Grade", "Assignment Type"},
-	}
-
-	_, result, err := editPrompt.Run()
+  result, err := prompt.List(constants.CHOOSE_OPTION_EDIT, constants.EDIT_ASSIGNMENT_OPTS)
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
 	switch result {
-	case "Name":
+	case constants.EDIT_ASSIGNMENT_OPTS[0]:
 		cfg.editAssignmentName(assignment, className)
-	case "Grade":
+	case constants.EDIT_ASSIGNMENT_OPTS[1]:
 		cfg.editAssignmentGrade(assignment, className)
-	case "Assignment Type":
+	case constants.EDIT_ASSIGNMENT_OPTS[2]:
 		cfg.editAssignmentType(assignment, className)
 	default: // Handles cases not explicitly matched
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	cfg.selectAssignmentOption(className)
-}
-
-func (cfg *apiConfig) getAllClassAssignmentsFromDB(className string) ([]string, error) {
-	// take the class name and find the class id in the db
-	const sqlQueryClassIdStatement = `SELECT id FROM classes WHERE name=?`
-	var classID int
-	if err := cfg.db.QueryRow(sqlQueryClassIdStatement, className).Scan(&classID); err != nil {
-		log.Fatal(err)
-	}
-
-	const sqlQueryAssignmentsStatement = `SELECT name FROM assignments WHERE class_id=?;`
-
-	rows, err := cfg.db.Query(sqlQueryAssignmentsStatement, classID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var assignments []string
-
-	for rows.Next() {
-		var name string
-
-		if err := rows.Scan(&name); err != nil {
-			return nil, err
-		}
-
-		assignments = append(assignments, name)
-	}
-
-	return assignments, nil
+	cfg.displayClassMenu(className)
 }
 
 func (cfg *apiConfig) editAssignmentName(assignment, className string) {

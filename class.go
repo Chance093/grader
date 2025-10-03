@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/Chance093/gradr/ascii"
+	"github.com/Chance093/gradr/constants"
+	"github.com/Chance093/gradr/prompt"
 	"github.com/manifoldco/promptui"
 )
 
@@ -40,25 +42,35 @@ func (cfg *apiConfig) viewOverallGrades() {
 	cfg.displayMainMenu()
 }
 
+func (cfg *apiConfig) selectClass() {
+	classes, err := cfg.getAllClassesFromDB()
+	if err != nil {
+		log.Fatalf("Error while getting classes: %s", err.Error())
+	}
+
+	classes = append(classes, constants.MAIN_MENU)
+
+	result, err := prompt.List(constants.SELECT_CLASS, classes)
+	if err != nil {
+		log.Fatalf("Prompt failed %v\n", err)
+	}
+
+	if result == constants.MAIN_MENU {
+		cfg.displayMainMenu()
+	}
+
+	cfg.displayClassMenu(result)
+}
+
 func (cfg *apiConfig) addClass() {
-	prompt := promptui.Prompt{
-		Label: "Enter class name",
-	}
-
-	className, err := prompt.Run()
+	className, err := prompt.Input("Enter class name")
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	prompt2 := promptui.Prompt{
-		Label: "Enter subject (e.g. Math)",
-	}
-
-	subject, err := prompt2.Run()
+	subject, err := prompt.Input("Enter subject (e.g. Math)")
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
+		log.Fatalf("Prompt failed %v\n", err)
 	}
 
 	if err := cfg.addClassToDB(className, subject); err != nil {
@@ -70,88 +82,10 @@ func (cfg *apiConfig) addClass() {
 	cfg.displayMainMenu()
 }
 
-func (cfg *apiConfig) addClassToDB(className, subject string) error {
-	const sqlInsertClassStatement = `
-      INSERT INTO classes (name, subject)
-    VALUES (?, ?);
-    `
-
-	res, err := cfg.db.Exec(sqlInsertClassStatement, className, subject)
-	if err != nil {
-		return err
-	}
-
-	classId, err := res.LastInsertId()
-	if err != nil {
-		return err
-	}
-
-	const sqlCreateWeightsStatement = `
-    INSERT INTO assignment_weights (weight, type_id, class_id)
-    VALUES (50, 1, ?), (20, 2, ?), (30, 3, ?);
-    `
-
-	if _, err := cfg.db.Exec(sqlCreateWeightsStatement, classId, classId, classId); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (cfg *apiConfig) selectClass() {
-	classes, err := cfg.getAllClassesFromDB()
-	if err != nil {
-		log.Fatalf("Error while getting classes: %s", err.Error())
-	}
-
-	classes = append(classes, "Main Menu")
-
-	prompt := promptui.Select{
-		Label: "Select a Class",
-		Items: classes,
-	}
-
-	_, result, err := prompt.Run()
-	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		return
-	}
-
-	if result == "Main Menu" {
-		cfg.displayMainMenu()
-	}
-
-	cfg.selectAssignmentOption(result)
-}
-
 type Classes []struct {
 	id      int
 	name    string
 	subject string
-}
-
-func (cfg *apiConfig) getAllClassesFromDB() ([]string, error) {
-	const sqlQueryClassesStatement = `SELECT name FROM classes;`
-
-	rows, err := cfg.db.Query(sqlQueryClassesStatement)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var classes []string
-
-	for rows.Next() {
-		var name string
-
-		if err := rows.Scan(&name); err != nil {
-			return nil, err
-		}
-
-		classes = append(classes, name)
-	}
-
-	return classes, nil
 }
 
 func (cfg *apiConfig) deleteClass() {
