@@ -16,7 +16,6 @@ func init() {
 	constants.WHITE_SPACE = " "
 	constants.VERTICAL_BORDER_CHAR = "|"
 	constants.HORIZONTAL_BORDER_CHAR = "-"
-	constants.HEADER_BORDER_CHAR = "="
 	constants.INIT_MAX_CLASS_COLUMN_LENGTH = 5
 	constants.INIT_MAX_GRADE_COLUMN_LENGTH = 5
 }
