@@ -12,7 +12,7 @@ import (
 )
 
 func (cfg *config) viewOverallGrades() {
-	raw, err := cfg.db.GetClassesAndGradesFromDB()
+	raw, err := cfg.db.GetClassesAndGrades()
 	if err != nil {
 		log.Fatalf("Error while getting classes and grades: %s", err.Error())
 	}
@@ -21,7 +21,7 @@ func (cfg *config) viewOverallGrades() {
 
 	// for the case of classes with no assignments
 	if len(calculated) == 0 {
-		classes, err := cfg.db.GetAllClassesFromDB()
+		classes, err := cfg.db.GetAllClasses()
 		if err != nil {
 			log.Fatalf("Error while getting classes: %s", err.Error())
 		}
@@ -37,7 +37,7 @@ func (cfg *config) viewOverallGrades() {
 }
 
 func (cfg *config) selectClass() {
-	classes, err := cfg.db.GetAllClassesFromDB()
+	classes, err := cfg.db.GetAllClasses()
 	if err != nil {
 		log.Fatalf("Error while getting classes: %s", err.Error())
 	}
@@ -67,7 +67,7 @@ func (cfg *config) addClass() {
 		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	if err := cfg.db.AddClassToDB(className, subject); err != nil {
+	if err := cfg.db.AddClass(className, subject); err != nil {
 		log.Fatalf("Failed to add to db: %s", err.Error())
 	}
 
@@ -77,7 +77,7 @@ func (cfg *config) addClass() {
 }
 
 func (cfg *config) editClass() {
-	classes, err := cfg.db.GetAllClassesFromDB()
+	classes, err := cfg.db.GetAllClasses()
 	if err != nil {
 		log.Fatalf("Error while getting classes : %s", err.Error())
 	}
@@ -118,7 +118,7 @@ func (cfg *config) editClassName(oldClassName string) {
 		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	cfg.db.EditClassNameInDB(oldClassName, newClassName)
+	cfg.db.EditClassName(oldClassName, newClassName)
 
 	fmt.Printf("Changed class name '%s' to '%s'!\n", oldClassName, newClassName)
 
@@ -167,7 +167,7 @@ func (cfg *config) editClassWeights(className string) {
 }
 
 func (cfg *config) deleteClass() {
-	classes, err := cfg.db.GetAllClassesFromDB()
+	classes, err := cfg.db.GetAllClasses()
 	if err != nil {
 		log.Fatalf("Error while getting classes : %s", err.Error())
 	}
@@ -186,7 +186,7 @@ func (cfg *config) deleteClass() {
 	case constants.QUIT:
 		quit()
 	default:
-		cfg.db.DeleteClassFromDB(class)
+		cfg.db.DeleteClass(class)
 	}
 
 	fmt.Printf("Deleted %s!\n", class)

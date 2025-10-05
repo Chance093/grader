@@ -11,7 +11,7 @@ import (
 )
 
 func (cfg *config) viewAssignments(className string) {
-	assignments, err := cfg.db.GetClassAssignmentsFromDB(className)
+	assignments, err := cfg.db.GetClassAssignments(className)
 	if err != nil {
 		log.Fatalf("Error while getting class assignments: %s", err.Error())
 	}
@@ -46,7 +46,7 @@ func (cfg *config) addAssignment(className string) {
 		return // explicit return so when the callstack clears, it doesn't make a ton of bad assignments
 	}
 
-	if err := cfg.db.AddAssignmentToDB(assignmentName, assignmentType, className, totalPoints, correctPoints); err != nil {
+	if err := cfg.db.AddAssignment(assignmentName, assignmentType, className, totalPoints, correctPoints); err != nil {
 		log.Fatalf("Error while adding assignment to db: %s", err.Error())
 	}
 
@@ -56,7 +56,7 @@ func (cfg *config) addAssignment(className string) {
 }
 
 func (cfg *config) editAssignment(className string) {
-	assignments, err := cfg.db.GetAllClassAssignmentsFromDB(className)
+	assignments, err := cfg.db.GetAllClassAssignments(className)
 	if err != nil {
 		log.Fatalf("Error while getting class assignments: %s", err.Error())
 	}
@@ -104,7 +104,7 @@ func (cfg *config) editAssignmentName(assignment, className string) {
 		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	if err := cfg.db.EditAssignmentNameInDB(assignment, newName, className); err != nil {
+	if err := cfg.db.EditAssignmentName(assignment, newName, className); err != nil {
 		log.Fatal(err)
 	}
 
@@ -127,7 +127,7 @@ func (cfg *config) editAssignmentGrade(assignment, className string) {
 		return // explicit return so when the callstack clears, it doesn't make a ton of bad assignments
 	}
 
-	if err := cfg.db.EditAssignmentGradeInDB(assignment, className, totalPoints, correctPoints); err != nil {
+	if err := cfg.db.EditAssignmentGrade(assignment, className, totalPoints, correctPoints); err != nil {
 		log.Fatal(err)
 	}
 
@@ -140,7 +140,7 @@ func (cfg *config) editAssignmentType(assignment, className string) {
 		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	if err := cfg.db.EditAssignmentTypeInDB(assignment, className, assignmentType); err != nil {
+	if err := cfg.db.EditAssignmentType(assignment, className, assignmentType); err != nil {
 		log.Fatal(err)
 	}
 
@@ -148,7 +148,7 @@ func (cfg *config) editAssignmentType(assignment, className string) {
 }
 
 func (cfg *config) deleteAssignment(className string) {
-	assignments, err := cfg.db.GetAllClassAssignmentsFromDB(className)
+	assignments, err := cfg.db.GetAllClassAssignments(className)
 	if err != nil {
 		log.Fatalf("Error while getting classes : %s", err.Error())
 	}
@@ -170,7 +170,7 @@ func (cfg *config) deleteAssignment(className string) {
 	case constants.QUIT:
 		quit()
 	default:
-		cfg.db.DeleteAssignmentFromDB(assignment, className)
+		cfg.db.DeleteAssignment(assignment, className)
 	}
 
 	fmt.Printf("Deleted assignment: %s!\n", assignment)
