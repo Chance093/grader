@@ -9,13 +9,14 @@ import (
 
 func DisplayClassGrades(data map[string]string) {
 	maxC, maxG := getClassColumnLengths(data)
-	topAndBottomLine := getHorizontalBorderLine([]int{maxC, maxG})
+	topLine := getHorizontalBorderLine([]int{maxC, maxG}, "top")
+	bottomLine := getHorizontalBorderLine([]int{maxC, maxG}, "bottom")
 	headerLine := getHeaderLine([]int{maxC, maxG}, []string{"Class", "Grade"})
 	headerBorderLine := getHeaderBorderLine([]int{maxC, maxG})
 	classLines := getClassLines(maxC, maxG, data)
 
 	fmt.Println("")
-	fmt.Println(topAndBottomLine)
+	fmt.Println(topLine)
 	fmt.Println(headerLine)
 	fmt.Println(headerBorderLine)
 
@@ -23,7 +24,7 @@ func DisplayClassGrades(data map[string]string) {
 		fmt.Println(line)
 	}
 
-	fmt.Println(topAndBottomLine)
+	fmt.Println(bottomLine)
 	fmt.Println("")
 }
 

@@ -2,16 +2,32 @@ package ascii
 
 import "github.com/Chance093/gradr/constants"
 
-func getHorizontalBorderLine(ints []int) string {
-	totalChars := 4                   // outside chars plus gap "|  |"
-	totalChars += (len(ints) - 1) * 3 // inside chars plus gap " | "
-	for _, int := range ints {        // add all max column lengths
-		totalChars += int
+func getHorizontalBorderLine(ints []int, line string) string {
+	var horizontalBorder string
+	if line == "top" {
+		horizontalBorder += constants.WHITE_SPACE + constants.TOP_LEFT_CHAR
+	} else if line == "bottom" {
+		horizontalBorder += constants.WHITE_SPACE + constants.BOTTOM_LEFT_CHAR
 	}
 
-	horizontalBorder := constants.WHITE_SPACE
-	for range totalChars {
-		horizontalBorder += constants.HORIZONTAL_BORDER_CHAR
+	for i, int := range ints {
+		for range int + 2 {
+			horizontalBorder += constants.HORIZONTAL_BORDER_CHAR
+		}
+
+		if i != len(ints)-1 {
+			if line == "top" {
+				horizontalBorder += constants.HORIZONTAL_TOP_CHAR
+			} else if line == "bottom" {
+				horizontalBorder += constants.HORIZONTAL_BOTTOM_CHAR
+			}
+		}
+	}
+
+	if line == "top" {
+		horizontalBorder += constants.TOP_RIGHT_CHAR
+	} else if line == "bottom" {
+		horizontalBorder += constants.BOTTOM_RIGHT_CHAR
 	}
 
 	return horizontalBorder
@@ -33,15 +49,17 @@ func getHeaderLine(ints []int, headers []string) string {
 }
 
 func getHeaderBorderLine(ints []int) string {
-	headerBorderLine := constants.WHITE_SPACE
-	for _, int := range ints {
-		headerBorderLine += constants.VERTICAL_BORDER_CHAR
+	headerBorderLine := constants.WHITE_SPACE + constants.VERTICAL_RIGHT_CHAR
+	for i, int := range ints {
+		if i != 0 {
+			headerBorderLine += constants.CROSS_CHAR
+		}
 		for i := 0; i < int+2; i++ {
-			headerBorderLine += constants.HEADER_BORDER_CHAR
+			headerBorderLine += constants.HORIZONTAL_BORDER_CHAR
 		}
 	}
 
-	headerBorderLine += constants.VERTICAL_BORDER_CHAR
+	headerBorderLine += constants.VERTICAL_LEFT_CHAR
 
 	return headerBorderLine
 }

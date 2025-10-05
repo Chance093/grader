@@ -10,13 +10,14 @@ import (
 
 func DisplayAssignmentGrades(assignments types.Assignments) {
 	maxA, maxG, maxT := getAssignmentColumnLengths(assignments)
-	topAndBottomLine := getHorizontalBorderLine([]int{maxA, maxG, maxT})
+	topLine := getHorizontalBorderLine([]int{maxA, maxG, maxT}, "top")
+	bottomLine := getHorizontalBorderLine([]int{maxA, maxG, maxT}, "bottom")
 	headerLine := getHeaderLine([]int{maxA, maxG, maxT}, []string{"Assignment", "Grade", "Type"})
 	borderLine := getHeaderBorderLine([]int{maxA, maxG, maxT})
 	assignmentLines := getAssignmentLines(maxA, maxG, maxT, assignments)
 
 	fmt.Println("")
-	fmt.Println(topAndBottomLine)
+	fmt.Println(topLine)
 	fmt.Println(headerLine)
 	fmt.Println(borderLine)
 
@@ -24,7 +25,7 @@ func DisplayAssignmentGrades(assignments types.Assignments) {
 		fmt.Println(line)
 	}
 
-	fmt.Println(topAndBottomLine)
+	fmt.Println(bottomLine)
 	fmt.Println("")
 }
 
