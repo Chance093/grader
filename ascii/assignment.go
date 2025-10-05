@@ -2,6 +2,7 @@ package ascii
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Chance093/gradr/constants"
 	"github.com/Chance093/gradr/types"
@@ -71,7 +72,7 @@ func getAssignmentLines(maxA, maxG, maxT int, assignments types.Assignments) []s
 		assignmentLine += constants.WHITE_SPACE + constants.VERTICAL_BORDER_CHAR + constants.WHITE_SPACE + assignment.Grade
 
 		// add percent if there is a grade
-		if assignment.Grade == " N/A" {
+		if strings.Contains(assignment.Grade, "N/A") {
 			assignmentLine += constants.WHITE_SPACE
 		} else {
 			assignmentLine += "%"

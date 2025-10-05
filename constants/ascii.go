@@ -1,6 +1,7 @@
 package constants
 
-const (
+// not constant for tests :)
+var (
 	INIT_MAX_CLASS_COLUMN_LENGTH      = 20
 	INIT_MAX_ASSIGNMENT_COLUMN_LENGTH = 20
 	INIT_MAX_GRADE_COLUMN_LENGTH      = 5
