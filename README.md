@@ -15,7 +15,7 @@ TODO:
 - [x] If class but no grades, render ascii table showing class but N/A for the grade
 - [x] Make sure correct is never more than total
 - [x] Add main menu option
+- [x] Fix add assignment bug that adds multiple assignments when it fails validation
 - [ ] Refactor
-- [ ] Fix add assignment bug that adds multiple assignments when it fails validation
 - [ ] Add symbols to `Go back` and `Quit` and `Main Menu`
 - [ ] Change border chars in ascii

@@ -10,7 +10,7 @@ import (
 	"github.com/Chance093/gradr/validation"
 )
 
-func (cfg *apiConfig) viewAssignments(className string) {
+func (cfg *config) viewAssignments(className string) {
 	assignments, err := cfg.db.GetClassAssignmentsFromDB(className)
 	if err != nil {
 		log.Fatalf("Error while getting class assignments: %s", err.Error())
@@ -21,7 +21,7 @@ func (cfg *apiConfig) viewAssignments(className string) {
 	cfg.displayClassMenu(className)
 }
 
-func (cfg *apiConfig) addAssignment(className string) {
+func (cfg *config) addAssignment(className string) {
 	// capture inputs
 	assignmentName, err := prompt.Input(constants.ENTER_ASSIGNMENT_NAME)
 	if err != nil {
@@ -55,7 +55,7 @@ func (cfg *apiConfig) addAssignment(className string) {
 	cfg.displayClassMenu(className)
 }
 
-func (cfg *apiConfig) editAssignment(className string) {
+func (cfg *config) editAssignment(className string) {
 	assignments, err := cfg.db.GetAllClassAssignmentsFromDB(className)
 	if err != nil {
 		log.Fatalf("Error while getting class assignments: %s", err.Error())
@@ -98,7 +98,7 @@ func (cfg *apiConfig) editAssignment(className string) {
 	cfg.displayClassMenu(className)
 }
 
-func (cfg *apiConfig) editAssignmentName(assignment, className string) {
+func (cfg *config) editAssignmentName(assignment, className string) {
 	newName, err := prompt.Input(constants.ENTER_ASSIGNMENT_NAME)
 	if err != nil {
 		log.Fatalf("Prompt failed %v\n", err)
@@ -111,7 +111,7 @@ func (cfg *apiConfig) editAssignmentName(assignment, className string) {
 	fmt.Printf("Assignment name updated to: %s\n", newName)
 }
 
-func (cfg *apiConfig) editAssignmentGrade(assignment, className string) {
+func (cfg *config) editAssignmentGrade(assignment, className string) {
 	totalPoints, err := prompt.Input(constants.ENTER_TOTAL_POINTS)
 	if err != nil {
 		log.Fatalf("Prompt failed %v\n", err)
@@ -134,7 +134,7 @@ func (cfg *apiConfig) editAssignmentGrade(assignment, className string) {
 	fmt.Println("Assignment grade updated!")
 }
 
-func (cfg *apiConfig) editAssignmentType(assignment, className string) {
+func (cfg *config) editAssignmentType(assignment, className string) {
 	assignmentType, err := prompt.List(constants.CHOOSE_ASSIGNMENT_TYPE, constants.ASSIGNMENT_TYPES)
 	if err != nil {
 		log.Fatalf("Prompt failed %v\n", err)
@@ -147,7 +147,7 @@ func (cfg *apiConfig) editAssignmentType(assignment, className string) {
 	fmt.Printf("Assignment type updated to: %s\n", assignmentType)
 }
 
-func (cfg *apiConfig) deleteAssignment(className string) {
+func (cfg *config) deleteAssignment(className string) {
 	assignments, err := cfg.db.GetAllClassAssignmentsFromDB(className)
 	if err != nil {
 		log.Fatalf("Error while getting classes : %s", err.Error())

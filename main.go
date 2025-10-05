@@ -2,13 +2,12 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/Chance093/gradr/internal/db"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type apiConfig struct {
+type config struct {
 	db *db.DB
 }
 
@@ -19,13 +18,9 @@ func main() {
 	}
 	defer db.Close()
 
-	cfg := apiConfig{
+	cfg := config{
 		db: db,
 	}
 
 	cfg.displayMainMenu()
-}
-
-func quit() {
-	os.Exit(0)
 }

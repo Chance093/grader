@@ -11,7 +11,7 @@ import (
 	"github.com/Chance093/gradr/validation"
 )
 
-func (cfg *apiConfig) viewOverallGrades() {
+func (cfg *config) viewOverallGrades() {
 	raw, err := cfg.db.GetClassesAndGradesFromDB()
 	if err != nil {
 		log.Fatalf("Error while getting classes and grades: %s", err.Error())
@@ -36,7 +36,7 @@ func (cfg *apiConfig) viewOverallGrades() {
 	cfg.displayMainMenu()
 }
 
-func (cfg *apiConfig) selectClass() {
+func (cfg *config) selectClass() {
 	classes, err := cfg.db.GetAllClassesFromDB()
 	if err != nil {
 		log.Fatalf("Error while getting classes: %s", err.Error())
@@ -56,7 +56,7 @@ func (cfg *apiConfig) selectClass() {
 	cfg.displayClassMenu(result)
 }
 
-func (cfg *apiConfig) addClass() {
+func (cfg *config) addClass() {
 	className, err := prompt.Input(constants.ENTER_CLASS_NAME)
 	if err != nil {
 		log.Fatalf("Prompt failed %v\n", err)
@@ -76,35 +76,7 @@ func (cfg *apiConfig) addClass() {
 	cfg.displayMainMenu()
 }
 
-func (cfg *apiConfig) deleteClass() {
-	classes, err := cfg.db.GetAllClassesFromDB()
-	if err != nil {
-		log.Fatalf("Error while getting classes : %s", err.Error())
-	}
-
-	classes = append(classes, constants.MAIN_MENU)
-	classes = append(classes, constants.QUIT)
-
-	class, err := prompt.List(constants.SELECT_CLASS_DELETE, classes)
-	if err != nil {
-		log.Fatalf("Prompt failed %v\n", err)
-	}
-
-	switch class {
-	case constants.MAIN_MENU:
-		cfg.displayMainMenu()
-	case constants.QUIT:
-		quit()
-	default:
-		cfg.db.DeleteClassFromDB(class)
-	}
-
-	fmt.Printf("Deleted %s!\n", class)
-
-	cfg.displayMainMenu()
-}
-
-func (cfg *apiConfig) editClass() {
+func (cfg *config) editClass() {
 	classes, err := cfg.db.GetAllClassesFromDB()
 	if err != nil {
 		log.Fatalf("Error while getting classes : %s", err.Error())
@@ -140,7 +112,7 @@ func (cfg *apiConfig) editClass() {
 	}
 }
 
-func (cfg *apiConfig) editClassName(oldClassName string) {
+func (cfg *config) editClassName(oldClassName string) {
 	newClassName, err := prompt.Input(constants.ENTER_CLASS_NAME)
 	if err != nil {
 		log.Fatalf("Prompt failed %v\n", err)
@@ -153,7 +125,7 @@ func (cfg *apiConfig) editClassName(oldClassName string) {
 	cfg.displayMainMenu()
 }
 
-func (cfg *apiConfig) editClassWeights(className string) {
+func (cfg *config) editClassWeights(className string) {
 	typeMap := map[int]string{
 		1: "Test",
 		2: "Quiz",
@@ -190,6 +162,34 @@ func (cfg *apiConfig) editClassWeights(className string) {
 	}
 
 	fmt.Println("Successfully upgraded class weights!")
+
+	cfg.displayMainMenu()
+}
+
+func (cfg *config) deleteClass() {
+	classes, err := cfg.db.GetAllClassesFromDB()
+	if err != nil {
+		log.Fatalf("Error while getting classes : %s", err.Error())
+	}
+
+	classes = append(classes, constants.MAIN_MENU)
+	classes = append(classes, constants.QUIT)
+
+	class, err := prompt.List(constants.SELECT_CLASS_DELETE, classes)
+	if err != nil {
+		log.Fatalf("Prompt failed %v\n", err)
+	}
+
+	switch class {
+	case constants.MAIN_MENU:
+		cfg.displayMainMenu()
+	case constants.QUIT:
+		quit()
+	default:
+		cfg.db.DeleteClassFromDB(class)
+	}
+
+	fmt.Printf("Deleted %s!\n", class)
 
 	cfg.displayMainMenu()
 }

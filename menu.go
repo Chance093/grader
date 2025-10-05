@@ -2,12 +2,13 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/Chance093/gradr/constants"
 	"github.com/Chance093/gradr/prompt"
 )
 
-func (cfg *apiConfig) displayMainMenu() {
+func (cfg *config) displayMainMenu() {
 	chosenOption, err := prompt.List(
 		constants.CHOOSE_AN_OPTION,
 		[]string{
@@ -41,7 +42,7 @@ func (cfg *apiConfig) displayMainMenu() {
 	}
 }
 
-func (cfg *apiConfig) displayClassMenu(className string) {
+func (cfg *config) displayClassMenu(className string) {
 	result, err := prompt.List(constants.CHOOSE_AN_OPTION, []string{
 		constants.VIEW_ASSIGNMENTS,
 		constants.ADD_ASSIGNMENT,
@@ -73,4 +74,8 @@ func (cfg *apiConfig) displayClassMenu(className string) {
 	default: // Handles cases not explicitly matched
 		log.Fatalf("Prompt failed %v\n", err)
 	}
+}
+
+func quit() {
+	os.Exit(0)
 }
