@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Chance093/gradr/ascii"
 	"github.com/Chance093/gradr/calculate"
@@ -152,13 +153,17 @@ func (cfg *config) editClassWeights(className string) {
 	}
 
 	if err := validation.ValidateWeights([]string{testWeight, quizWeight, homeworkWeight}); err != nil {
+    // check to see if error is conversion error or validation error
+		if strings.Contains(err.Error(), "conversion") {
+			log.Fatalf("Error while validating weights: %s", err)
+		}
 		fmt.Println(err.Error())
 		cfg.editClassWeights(className)
 		return // explicit return so when the callstack clears, it doesn't make a ton of bad assignments
 	}
 
 	if err := cfg.db.UpdateClassWeights(className, testWeight, quizWeight, homeworkWeight); err != nil {
-    log.Fatalf("Error while updating class weights: %s", err)
+		log.Fatalf("Error while updating class weights: %s", err)
 	}
 
 	fmt.Println("Successfully upgraded class weights!")

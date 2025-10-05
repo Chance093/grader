@@ -2,7 +2,7 @@ package validation
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"strconv"
 )
 
@@ -11,9 +11,8 @@ func ValidateWeights(weights []string) error {
 	for _, weight := range weights {
 		weightInt, err := strconv.Atoi(weight)
 		if err != nil {
-			log.Fatalf("String to int conversion failed %v\n", err)
+			return fmt.Errorf("String to int conversion failed: %w\n", err)
 		}
-
 		sum += weightInt
 	}
 
@@ -27,12 +26,11 @@ func ValidateWeights(weights []string) error {
 func ValidatePoints(totalPoints, correctPoints string) error {
 	totalPointsInt, err := strconv.Atoi(totalPoints)
 	if err != nil {
-		log.Fatalf("Failed to convert string to int: %s", err.Error())
+		return fmt.Errorf("String to int conversion failed: %w\n", err)
 	}
-
 	correctPointsInt, err := strconv.Atoi(correctPoints)
 	if err != nil {
-		log.Fatalf("Failed to convert string to int: %s", err.Error())
+		return fmt.Errorf("String to int conversion failed: %w\n", err)
 	}
 
 	if totalPointsInt < correctPointsInt {

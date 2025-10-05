@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Chance093/gradr/ascii"
 	"github.com/Chance093/gradr/constants"
@@ -41,6 +42,10 @@ func (cfg *config) addAssignment(className string) {
 	}
 
 	if err := validation.ValidatePoints(totalPoints, correctPoints); err != nil {
+    // check to see if error is conversion error or validation error
+		if strings.Contains(err.Error(), "conversion") {
+			log.Fatalf("Error while validating points: %s", err)
+		}
 		fmt.Println(err.Error())
 		cfg.addAssignment(className)
 		return // explicit return so when the callstack clears, it doesn't make a ton of bad assignments
@@ -105,7 +110,7 @@ func (cfg *config) editAssignmentName(assignment, className string) {
 	}
 
 	if err := cfg.db.EditAssignmentName(assignment, newName, className); err != nil {
-    log.Fatalf("Error while editing assignment name: %s", err)
+		log.Fatalf("Error while editing assignment name: %s", err)
 	}
 
 	fmt.Printf("Assignment name updated to: %s\n", newName)
@@ -122,13 +127,17 @@ func (cfg *config) editAssignmentGrade(assignment, className string) {
 	}
 
 	if err := validation.ValidatePoints(totalPoints, correctPoints); err != nil {
+    // check to see if error is conversion error or validation error
+		if strings.Contains(err.Error(), "conversion") {
+			log.Fatalf("Error while validating points: %s", err)
+		}
 		fmt.Println(err.Error())
 		cfg.editAssignmentGrade(assignment, className)
 		return // explicit return so when the callstack clears, it doesn't make a ton of bad assignments
 	}
 
 	if err := cfg.db.EditAssignmentGrade(assignment, className, totalPoints, correctPoints); err != nil {
-    log.Fatalf("Error while editing assignment grade: %s", err)
+		log.Fatalf("Error while editing assignment grade: %s", err)
 	}
 
 	fmt.Println("Assignment grade updated!")
@@ -141,7 +150,7 @@ func (cfg *config) editAssignmentType(assignment, className string) {
 	}
 
 	if err := cfg.db.EditAssignmentType(assignment, className, assignmentType); err != nil {
-    log.Fatalf("Error while editing assignment type: %s", err)
+		log.Fatalf("Error while editing assignment type: %s", err)
 	}
 
 	fmt.Printf("Assignment type updated to: %s\n", assignmentType)
