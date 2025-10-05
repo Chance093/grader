@@ -1,19 +1,19 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"os"
 
+	"github.com/Chance093/gradr/internal/db"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type apiConfig struct {
-	db *sql.DB
+	db *db.DB
 }
 
 func main() {
-	db, err := initDB()
+	db, err := db.NewDB()
 	if err != nil {
 		log.Fatal(err)
 	}

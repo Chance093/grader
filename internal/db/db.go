@@ -1,9 +1,22 @@
-package main
+package db
 
 import (
 	"database/sql"
 	"log"
 )
+
+type DB struct {
+	*sql.DB
+}
+
+func NewDB() (*DB, error) {
+	db, err := initDB()
+	if err != nil {
+		return nil, err
+	}
+
+	return &DB{db}, nil
+}
 
 func initDB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", "./gradr.db")

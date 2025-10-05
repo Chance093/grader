@@ -16,6 +16,7 @@ const (
 )
 
 var (
+	EDIT_CLASS_OPTS      = []string{"Name", "Grade Weights"}
 	EDIT_ASSIGNMENT_OPTS = []string{"Name", "Grade", "Type"}
 	ASSIGNMENT_TYPES     = []string{"Test", "Quiz", "Homework"}
 )

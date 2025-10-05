@@ -1,18 +1,17 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/Chance093/gradr/ascii"
 	"github.com/Chance093/gradr/constants"
 	"github.com/Chance093/gradr/prompt"
+	"github.com/Chance093/gradr/validation"
 )
 
 func (cfg *apiConfig) viewAssignments(className string) {
-	assignments, err := cfg.getClassAssignmentsFromDB(className)
+	assignments, err := cfg.db.GetClassAssignmentsFromDB(className)
 	if err != nil {
 		log.Fatalf("Error while getting class assignments: %s", err.Error())
 	}
@@ -41,13 +40,13 @@ func (cfg *apiConfig) addAssignment(className string) {
 		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	if err := validatePoints(totalPoints, correctPoints, className); err != nil {
+	if err := validation.ValidatePoints(totalPoints, correctPoints); err != nil {
 		fmt.Println(err.Error())
 		cfg.addAssignment(className)
 		return // explicit return so when the callstack clears, it doesn't make a ton of bad assignments
 	}
 
-	if err := cfg.addAssignmentToDB(assignmentName, assignmentType, className, totalPoints, correctPoints); err != nil {
+	if err := cfg.db.AddAssignmentToDB(assignmentName, assignmentType, className, totalPoints, correctPoints); err != nil {
 		log.Fatalf("Error while adding assignment to db: %s", err.Error())
 	}
 
@@ -56,26 +55,8 @@ func (cfg *apiConfig) addAssignment(className string) {
 	cfg.displayClassMenu(className)
 }
 
-func validatePoints(totalPoints, correctPoints, className string) error {
-	totalPointsInt, err := strconv.Atoi(totalPoints)
-	if err != nil {
-		log.Fatalf("Failed to convert string to int: %s", err.Error())
-	}
-
-	correctPointsInt, err := strconv.Atoi(correctPoints)
-	if err != nil {
-		log.Fatalf("Failed to convert string to int: %s", err.Error())
-	}
-
-	if totalPointsInt < correctPointsInt {
-		return errors.New("Total points must be greater than or equal to correct points")
-	}
-
-	return nil
-}
-
 func (cfg *apiConfig) editAssignment(className string) {
-	assignments, err := cfg.getAllClassAssignmentsFromDB(className)
+	assignments, err := cfg.db.GetAllClassAssignmentsFromDB(className)
 	if err != nil {
 		log.Fatalf("Error while getting class assignments: %s", err.Error())
 	}
@@ -123,7 +104,7 @@ func (cfg *apiConfig) editAssignmentName(assignment, className string) {
 		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	if err := cfg.editAssignmentNameInDB(assignment, newName, className); err != nil {
+	if err := cfg.db.EditAssignmentNameInDB(assignment, newName, className); err != nil {
 		log.Fatal(err)
 	}
 
@@ -140,13 +121,13 @@ func (cfg *apiConfig) editAssignmentGrade(assignment, className string) {
 		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	if err := validatePoints(totalPoints, correctPoints, className); err != nil {
+	if err := validation.ValidatePoints(totalPoints, correctPoints); err != nil {
 		fmt.Println(err.Error())
 		cfg.editAssignmentGrade(assignment, className)
 		return // explicit return so when the callstack clears, it doesn't make a ton of bad assignments
 	}
 
-	if err := cfg.editAssignmentGradeInDB(assignment, className, totalPoints, correctPoints); err != nil {
+	if err := cfg.db.EditAssignmentGradeInDB(assignment, className, totalPoints, correctPoints); err != nil {
 		log.Fatal(err)
 	}
 
@@ -159,7 +140,7 @@ func (cfg *apiConfig) editAssignmentType(assignment, className string) {
 		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	if err := cfg.editAssignmentTypeInDB(assignment, className, assignmentType); err != nil {
+	if err := cfg.db.EditAssignmentTypeInDB(assignment, className, assignmentType); err != nil {
 		log.Fatal(err)
 	}
 
@@ -167,7 +148,7 @@ func (cfg *apiConfig) editAssignmentType(assignment, className string) {
 }
 
 func (cfg *apiConfig) deleteAssignment(className string) {
-	assignments, err := cfg.getAllClassAssignmentsFromDB(className)
+	assignments, err := cfg.db.GetAllClassAssignmentsFromDB(className)
 	if err != nil {
 		log.Fatalf("Error while getting classes : %s", err.Error())
 	}
@@ -189,7 +170,7 @@ func (cfg *apiConfig) deleteAssignment(className string) {
 	case constants.QUIT:
 		quit()
 	default:
-		cfg.deleteAssignmentFromDB(assignment, className)
+		cfg.db.DeleteAssignmentFromDB(assignment, className)
 	}
 
 	fmt.Printf("Deleted assignment: %s!\n", assignment)

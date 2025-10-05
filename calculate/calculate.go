@@ -1,4 +1,4 @@
-package main
+package calculate
 
 import (
 	"strconv"
@@ -6,30 +6,29 @@ import (
 	"github.com/Chance093/gradr/types"
 )
 
-
-func calculateGrades(raw ClassesAndGradesRaw) types.ClassAndGradeMap {
+func CalculateGrades(raw types.ClassesAndGradesRaw) types.ClassAndGradeMap {
 	classAndWeightGradesMap := getClassAndWeightGradesMap(raw)
 	classAndGradeMap := getClassAndGradeMap(classAndWeightGradesMap)
 
 	return classAndGradeMap
 }
 
-func getClassAndWeightGradesMap(raw ClassesAndGradesRaw) types.ClassAndWeightGradesMap {
+func getClassAndWeightGradesMap(raw types.ClassesAndGradesRaw) types.ClassAndWeightGradesMap {
 	classesAndGrades := make(types.ClassAndWeightGradesMap)
 	for _, row := range raw {
-		weightGradesMap, classExists := classesAndGrades[row.className]
+		weightGradesMap, classExists := classesAndGrades[row.ClassName]
 		if classExists {
-			grades, weightExists := weightGradesMap[row.weight]
+			grades, weightExists := weightGradesMap[row.Weight]
 			if weightExists {
 				// append grade to grades slice associated with weight
-				classesAndGrades[row.className][row.weight] = append(grades, row.grade)
+				classesAndGrades[row.ClassName][row.Weight] = append(grades, row.Grade)
 			} else {
 				// init weight and associate grade
-				classesAndGrades[row.className][row.weight] = []float64{row.grade}
+				classesAndGrades[row.ClassName][row.Weight] = []float64{row.Grade}
 			}
 		} else { // else initialize className to classesAndGrades map
-			classesAndGrades[row.className] = map[int][]float64{
-				row.weight: {row.grade},
+			classesAndGrades[row.ClassName] = map[int][]float64{
+				row.Weight: {row.Grade},
 			}
 		}
 	}
