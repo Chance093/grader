@@ -2,7 +2,10 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 )
 
 type DB struct {
@@ -19,7 +22,19 @@ func NewDB() (*DB, error) {
 }
 
 func initDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "./grader.db")
+	dataDir, err := os.UserConfigDir()
+	if err != nil {
+    return nil, fmt.Errorf("Error getting user config dir: %w", err)
+	}
+
+	appDir := filepath.Join(dataDir, "grader")
+
+	if err := os.MkdirAll(appDir, 0o755); err != nil {
+    return nil, fmt.Errorf("Error making grader dir in user config: %w", err)
+	}
+
+	dbPath := filepath.Join(appDir, "grader.db")
+	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
