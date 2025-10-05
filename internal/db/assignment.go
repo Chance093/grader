@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/Chance093/grader/types"
 )
@@ -33,6 +34,13 @@ func (db *DB) GetClassAssignments(className string) (types.Assignments, error) {
 		if err := rows.Scan(&a.Name, &a.Grade, &a.Type); err != nil {
 			return nil, fmt.Errorf("Error scanning row: %w", err)
 		}
+
+    // give grade 1 decimal place
+		floatGrade, err := strconv.ParseFloat(a.Grade, 64)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting str to float: %w", err)
+		}
+		a.Grade = strconv.FormatFloat(floatGrade, 'f', 1, 64)
 
 		assignments = append(assignments, a)
 	}
@@ -78,7 +86,7 @@ func (db *DB) GetAllClassAssignments(className string) ([]string, error) {
 
 	rows, err := db.Query(getAllClassAssignmentsQuery, className)
 	if err != nil {
-    return nil, fmt.Errorf("Error querying all class assignments: %w", err)
+		return nil, fmt.Errorf("Error querying all class assignments: %w", err)
 	}
 	defer rows.Close()
 
@@ -88,7 +96,7 @@ func (db *DB) GetAllClassAssignments(className string) ([]string, error) {
 		var name string
 
 		if err := rows.Scan(&name); err != nil {
-      return nil, fmt.Errorf("Error scanning row: %w", err)
+			return nil, fmt.Errorf("Error scanning row: %w", err)
 		}
 
 		assignments = append(assignments, name)
@@ -111,7 +119,7 @@ func (db *DB) EditAssignmentName(oldName, newName, className string) error {
   `
 
 	if _, err := db.Exec(updateAssignmentNameStatement, newName, oldName, className); err != nil {
-    return fmt.Errorf("Error updating assignment name: %w", err)
+		return fmt.Errorf("Error updating assignment name: %w", err)
 	}
 
 	return nil
@@ -127,7 +135,7 @@ func (db *DB) EditAssignmentGrade(assignment, className, total, correct string) 
   `
 
 	if _, err := db.Exec(updateAssignmentGradeStatement, correct, total, assignment, className); err != nil {
-    return fmt.Errorf("Error updating assignment grade: %w", err)
+		return fmt.Errorf("Error updating assignment grade: %w", err)
 	}
 
 	return nil
@@ -149,7 +157,7 @@ func (db *DB) EditAssignmentType(assignment, className, assignmentType string) e
 	}
 
 	if _, err := db.Exec(updateAssignmentTypeStatement, typeMap[assignmentType], assignment, className); err != nil {
-    return fmt.Errorf("Error updating assignment type: %w", err)
+		return fmt.Errorf("Error updating assignment type: %w", err)
 	}
 
 	return nil
@@ -164,7 +172,7 @@ func (db *DB) DeleteAssignment(assignmentName, className string) error {
   `
 
 	if _, err := db.Exec(deleteAssignmentStatement, assignmentName, className); err != nil {
-    return fmt.Errorf("Error deleting assignment: %w", err)
+		return fmt.Errorf("Error deleting assignment: %w", err)
 	}
 
 	return nil
