@@ -68,7 +68,7 @@ func (cfg *config) addClass() {
 	}
 
 	if err := cfg.db.AddClass(className, subject); err != nil {
-		log.Fatalf("Failed to add to db: %s", err.Error())
+		log.Fatalf("Error while adding class: %s", err.Error())
 	}
 
 	fmt.Printf("%s added!\n", className)
@@ -158,7 +158,7 @@ func (cfg *config) editClassWeights(className string) {
 	}
 
 	if err := cfg.db.UpdateClassWeights(className, testWeight, quizWeight, homeworkWeight); err != nil {
-		log.Fatal(err)
+    log.Fatalf("Error while updating class weights: %s", err)
 	}
 
 	fmt.Println("Successfully upgraded class weights!")
