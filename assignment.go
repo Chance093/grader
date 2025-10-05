@@ -105,7 +105,7 @@ func (cfg *config) editAssignmentName(assignment, className string) {
 	}
 
 	if err := cfg.db.EditAssignmentName(assignment, newName, className); err != nil {
-		log.Fatal(err)
+    log.Fatalf("Error while editing assignment name: %s", err)
 	}
 
 	fmt.Printf("Assignment name updated to: %s\n", newName)
@@ -128,7 +128,7 @@ func (cfg *config) editAssignmentGrade(assignment, className string) {
 	}
 
 	if err := cfg.db.EditAssignmentGrade(assignment, className, totalPoints, correctPoints); err != nil {
-		log.Fatal(err)
+    log.Fatalf("Error while editing assignment grade: %s", err)
 	}
 
 	fmt.Println("Assignment grade updated!")
@@ -141,7 +141,7 @@ func (cfg *config) editAssignmentType(assignment, className string) {
 	}
 
 	if err := cfg.db.EditAssignmentType(assignment, className, assignmentType); err != nil {
-		log.Fatal(err)
+    log.Fatalf("Error while editing assignment type: %s", err)
 	}
 
 	fmt.Printf("Assignment type updated to: %s\n", assignmentType)

@@ -1,14 +1,13 @@
 package db
 
 import (
-	"log"
-	"strconv"
+	"fmt"
 
 	"github.com/Chance093/gradr/types"
 )
 
 func (db *DB) GetClassAssignments(className string) (types.Assignments, error) {
-	const getClassAssignmentsStatement = `
+	const getClassAssignmentsQuery = `
   SELECT assignments.name, 
     assignments.percentage AS grade, 
     assignment_types.name AS type 
@@ -20,65 +19,66 @@ func (db *DB) GetClassAssignments(className string) (types.Assignments, error) {
   );
   `
 
-	rows, err := db.Query(getClassAssignmentsStatement, className)
+	rows, err := db.Query(getClassAssignmentsQuery, className)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error querying class assignments: %w", err)
 	}
 	defer rows.Close()
 
 	var assignments types.Assignments
 
 	for rows.Next() {
-		var Name string
-		var Grade float64
-		var Type string
+		var a types.Assignment
 
-		if err := rows.Scan(&Name, &Grade, &Type); err != nil {
-			return nil, err
+		if err := rows.Scan(&a.Name, &a.Grade, &a.Type); err != nil {
+			return nil, fmt.Errorf("Error scanning row: %w", err)
 		}
 
-		assignments = append(assignments, types.Assignment{
-			Name:  Name,
-			Grade: strconv.FormatFloat(Grade, 'f', 1, 64),
-			Type:  Type,
-		})
+		assignments = append(assignments, a)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("Error during iteration: %w", err)
+	}
+
 	return assignments, nil
 }
 
 func (db *DB) AddAssignment(name, assignmentType, className, totalPoints, correctPoints string) error {
-	// take the class name and type name, and find their id's in the db
-	const sqlQueryIdsStatement = `
-    SELECT c.id, t.id
-    FROM classes c
-    CROSS JOIN assignment_types t
-    WHERE c.name = ? AND t.name = ?;
-    `
+	const getClassAndTypeIDsQuery = `
+  SELECT c.id, t.id
+  FROM classes c
+  CROSS JOIN assignment_types t
+  WHERE c.name = ? AND t.name = ?;
+  `
+
 	var classID, typeID int
-	if err := db.QueryRow(sqlQueryIdsStatement, className, assignmentType).Scan(&classID, &typeID); err != nil {
-		log.Fatal(err)
+	if err := db.QueryRow(getClassAndTypeIDsQuery, className, assignmentType).Scan(&classID, &typeID); err != nil {
+		return fmt.Errorf("Error querying id's and scanning row: %w", err)
 	}
 
-	// create assignment that is associated with class
-	const sqlInsertAssignmentStatement = `
-      INSERT INTO assignments (name, type_id, class_id, total, correct)
-    VALUES (?, ?, ?, ?, ?);
-    `
-	if _, err := db.Exec(sqlInsertAssignmentStatement, name, typeID, classID, totalPoints, correctPoints); err != nil {
-		return err
+	const createClassAssignmentStatement = `
+  INSERT INTO assignments (name, type_id, class_id, total, correct)
+  VALUES (?, ?, ?, ?, ?);
+  `
+
+	if _, err := db.Exec(createClassAssignmentStatement, name, typeID, classID, totalPoints, correctPoints); err != nil {
+		return fmt.Errorf("Error creating class assignment: %w", err)
 	}
 
 	return nil
 }
 
 func (db *DB) GetAllClassAssignments(className string) ([]string, error) {
-	const sqlQueryAssignmentsStatement = `SELECT name FROM assignments WHERE class_id=(
-      SELECT id FROM classes WHERE name = ?
-    );`
+	const getAllClassAssignmentsQuery = `
+  SELECT name FROM assignments WHERE class_id=(
+    SELECT id FROM classes WHERE name = ?
+  );
+  `
 
-	rows, err := db.Query(sqlQueryAssignmentsStatement, className)
+	rows, err := db.Query(getAllClassAssignmentsQuery, className)
 	if err != nil {
-		return nil, err
+    return nil, fmt.Errorf("Error querying all class assignments: %w", err)
 	}
 	defer rows.Close()
 
@@ -88,46 +88,59 @@ func (db *DB) GetAllClassAssignments(className string) ([]string, error) {
 		var name string
 
 		if err := rows.Scan(&name); err != nil {
-			return nil, err
+      return nil, fmt.Errorf("Error scanning row: %w", err)
 		}
 
 		assignments = append(assignments, name)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("Error during iteration: %w", err)
 	}
 
 	return assignments, nil
 }
 
 func (db *DB) EditAssignmentName(oldName, newName, className string) error {
-	const sqlUpdateAssignmentNameStatement = `
-      UPDATE assignments SET name = ? WHERE name = ? AND 
-    class_id = (SELECT id FROM classes WHERE name = ?);
-    `
+	const updateAssignmentNameStatement = `
+  UPDATE assignments 
+  SET name = ?
+  WHERE name = ? AND class_id = (
+    SELECT id FROM classes WHERE name = ?
+  );
+  `
 
-	if _, err := db.Exec(sqlUpdateAssignmentNameStatement, newName, oldName, className); err != nil {
-		return err
+	if _, err := db.Exec(updateAssignmentNameStatement, newName, oldName, className); err != nil {
+    return fmt.Errorf("Error updating assignment name: %w", err)
 	}
 
 	return nil
 }
 
 func (db *DB) EditAssignmentGrade(assignment, className, total, correct string) error {
-	const sqlUpdateAssignmentGradeStatement = `
-      UPDATE assignments SET correct = ?, total = ? WHERE name = ? AND 
-    class_id = (SELECT id FROM classes WHERE name = ?);
-    `
+	const updateAssignmentGradeStatement = `
+  UPDATE assignments 
+  SET correct = ?, total = ? 
+  WHERE name = ? AND class_id = (
+    SELECT id FROM classes WHERE name = ?
+  );
+  `
 
-	if _, err := db.Exec(sqlUpdateAssignmentGradeStatement, correct, total, assignment, className); err != nil {
-		return err
+	if _, err := db.Exec(updateAssignmentGradeStatement, correct, total, assignment, className); err != nil {
+    return fmt.Errorf("Error updating assignment grade: %w", err)
 	}
 
 	return nil
 }
 
 func (db *DB) EditAssignmentType(assignment, className, assignmentType string) error {
-	const sqlUpdateAssignmentNameStatement = `
-      UPDATE assignments SET type_id = ? WHERE name = ? AND 
-    class_id = (SELECT id FROM classes WHERE name = ?);
-    `
+	const updateAssignmentTypeStatement = `
+  UPDATE assignments 
+  SET type_id = ? 
+  WHERE name = ? AND class_id = (
+    SELECT id FROM classes WHERE name = ?
+  );
+  `
 
 	typeMap := map[string]int{
 		"Test":     1,
@@ -135,21 +148,23 @@ func (db *DB) EditAssignmentType(assignment, className, assignmentType string) e
 		"Homework": 3,
 	}
 
-	if _, err := db.Exec(sqlUpdateAssignmentNameStatement, typeMap[assignmentType], assignment, className); err != nil {
-		return err
+	if _, err := db.Exec(updateAssignmentTypeStatement, typeMap[assignmentType], assignment, className); err != nil {
+    return fmt.Errorf("Error updating assignment type: %w", err)
 	}
 
 	return nil
 }
 
 func (db *DB) DeleteAssignment(assignmentName, className string) error {
-	const sqlDeleteAssignmentStatement = `
-      DELETE FROM assignments WHERE name = ? AND class_id = 
-    (SELECT id FROM classes WHERE name = ?);
-    `
+	const deleteAssignmentStatement = `
+  DELETE FROM assignments 
+  WHERE name = ? AND class_id = (
+    SELECT id FROM classes WHERE name = ?
+  );
+  `
 
-	if _, err := db.Exec(sqlDeleteAssignmentStatement, assignmentName, className); err != nil {
-		return err
+	if _, err := db.Exec(deleteAssignmentStatement, assignmentName, className); err != nil {
+    return fmt.Errorf("Error deleting assignment: %w", err)
 	}
 
 	return nil
