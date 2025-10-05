@@ -1,4 +1,4 @@
-# gradectl
+# grader
 
 *A lightweight CLI for tracking your self-taught learning progress.*
 
@@ -6,12 +6,12 @@
 
 ## 📘 Overview
 
-**gradectl** is a simple, interactive command-line tool written in Go that helps
+**grader** is a simple, interactive command-line tool written in Go that helps
 you track your grades while learning independently. It was born out of my own
 self-taught learning journey. Working through books, exercises, tests, and
 wanting an easy way to see how I’m really doing over time.
 
-With `gradectl`, you can:
+With `grader`, you can:
 
 - Create and manage **classes** (e.g. Algebra, Calculus, etc.)
 - Add **homework**, **quizzes**, and **tests** for each class
@@ -28,10 +28,10 @@ intuitively without having to memorize commands.
 
 ## 🚀 Installation
 
-To install `gradectl` using Go:
+To install `grader` using Go:
 
 ```bash
-go install github.com/Chance093/gradectl@latest
+go install github.com/Chance093/grader@latest
 ```
 
 This will place the compiled binary in your `$GOPATH/bin` (or in `~/go/bin` if
@@ -40,7 +40,7 @@ you’re using default settings). Make sure it’s included in your system `PATH
 Then simply run:
 
 ```bash
-gradectl
+grader
 ```
 
 and you’ll see the interactive menu.
@@ -52,8 +52,8 @@ and you’ll see the interactive menu.
 If you’d rather clone and run it locally (for development or inspection):
 
 ```bash
-git clone https://github.com/Chance093/gradectl.git
-cd gradectl
+git clone https://github.com/Chance093/grader.git
+cd grader
 go run main.go
 ```
 
@@ -64,7 +64,7 @@ This will launch the same interactive CLI as the installed binary.
 ## 🧠 Why I Built It
 
 While teaching myself math through textbooks and problem sets, I wanted a simple
-way to measure my performance, without spreadsheets or heavy apps. `gradectl`
+way to measure my performance, without spreadsheets or heavy apps. `grader`
 keeps things focused and minimal: no sign-ins, no forgotten spreadsheets, just a CLI 
 to log your progress and see how you’re improving.
 
@@ -83,7 +83,7 @@ to log your progress and see how you’re improving.
 Launch the program:
 
 ```bash
-gradectl
+grader
 ```
 
 You’ll be greeted with a menu that lets you:
@@ -101,7 +101,7 @@ and enter your responses when prompted.
 ## 📬 Feedback
 
 If you have ideas or run into any issues, please open a GitHub issue on the
-[gradectl repository](https://github.com/Chance093/gradectl).
+[grader repository](https://github.com/Chance093/grader).
 
 ---
 
