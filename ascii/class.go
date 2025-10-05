@@ -3,6 +3,7 @@ package ascii
 import (
 	"fmt"
 
+	"github.com/Chance093/gradr/constants"
 	"github.com/Chance093/gradr/types"
 )
 
@@ -27,8 +28,8 @@ func DisplayClassGrades(data map[string]string) {
 }
 
 func getClassColumnLengths(data types.ClassAndGradeMap) (int, int) {
-	maxC := INIT_MAX_CLASS_COLUMN_LENGTH
-	maxG := INIT_MAX_GRADE_COLUMN_LENGTH
+	maxC := constants.INIT_MAX_CLASS_COLUMN_LENGTH
+	maxG := constants.INIT_MAX_GRADE_COLUMN_LENGTH
 
 	for className, grade := range data {
 		if len(className) > maxC {
@@ -54,23 +55,23 @@ func getClassLines(maxC, maxG int, data types.ClassAndGradeMap) []string {
 	}
 
 	for className, grade := range data {
-		classLine := WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + className
+		classLine := constants.WHITE_SPACE + constants.VERTICAL_BORDER_CHAR + constants.WHITE_SPACE + className
 		for i := 0; i < maxC-len(className); i++ {
-			classLine += WHITE_SPACE
+			classLine += constants.WHITE_SPACE
 		}
-		classLine += WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + grade
+		classLine += constants.WHITE_SPACE + constants.VERTICAL_BORDER_CHAR + constants.WHITE_SPACE + grade
 
 		// add percent if there is a grade
 		if grade == " N/A" {
-			classLine += WHITE_SPACE
+			classLine += constants.WHITE_SPACE
 		} else {
 			classLine += "%"
 		}
 
 		for i := 0; i < maxG-len(grade); i++ {
-			classLine += WHITE_SPACE
+			classLine += constants.WHITE_SPACE
 		}
-		classLine += VERTICAL_BORDER_CHAR
+		classLine += constants.VERTICAL_BORDER_CHAR
 
 		lines = append(lines, classLine)
 	}

@@ -1,4 +1,4 @@
-package ascii
+package constants
 
 const (
 	INIT_MAX_CLASS_COLUMN_LENGTH      = 20

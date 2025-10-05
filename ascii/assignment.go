@@ -3,6 +3,7 @@ package ascii
 import (
 	"fmt"
 
+	"github.com/Chance093/gradr/constants"
 	"github.com/Chance093/gradr/types"
 )
 
@@ -27,9 +28,9 @@ func DisplayAssignmentGrades(assignments types.Assignments) {
 }
 
 func getAssignmentColumnLengths(assignments types.Assignments) (int, int, int) {
-	maxA := INIT_MAX_ASSIGNMENT_COLUMN_LENGTH
-	maxG := INIT_MAX_GRADE_COLUMN_LENGTH
-	maxT := INIT_MAX_TYPE_COLUMN_LENGTH
+	maxA := constants.INIT_MAX_ASSIGNMENT_COLUMN_LENGTH
+	maxG := constants.INIT_MAX_GRADE_COLUMN_LENGTH
+	maxT := constants.INIT_MAX_TYPE_COLUMN_LENGTH
 
 	for _, assignment := range assignments {
 		if len(assignment.Name) > maxA {
@@ -63,29 +64,29 @@ func getAssignmentLines(maxA, maxG, maxT int, assignments types.Assignments) []s
 	}
 
 	for _, assignment := range assignments {
-		assignmentLine := WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + assignment.Name
+		assignmentLine := constants.WHITE_SPACE + constants.VERTICAL_BORDER_CHAR + constants.WHITE_SPACE + assignment.Name
 		for i := 0; i < maxA-len(assignment.Name); i++ {
-			assignmentLine += WHITE_SPACE
+			assignmentLine += constants.WHITE_SPACE
 		}
-		assignmentLine += WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + assignment.Grade
+		assignmentLine += constants.WHITE_SPACE + constants.VERTICAL_BORDER_CHAR + constants.WHITE_SPACE + assignment.Grade
 
 		// add percent if there is a grade
 		if assignment.Grade == " N/A" {
-			assignmentLine += WHITE_SPACE
+			assignmentLine += constants.WHITE_SPACE
 		} else {
 			assignmentLine += "%"
 		}
 
 		for i := 0; i < maxG-len(assignment.Grade)-1; i++ {
-			assignmentLine += WHITE_SPACE
+			assignmentLine += constants.WHITE_SPACE
 		}
-		assignmentLine += WHITE_SPACE + VERTICAL_BORDER_CHAR + WHITE_SPACE + assignment.Type
+		assignmentLine += constants.WHITE_SPACE + constants.VERTICAL_BORDER_CHAR + constants.WHITE_SPACE + assignment.Type
 
 		for i := 0; i < maxT-len(assignment.Type); i++ {
-			assignmentLine += WHITE_SPACE
+			assignmentLine += constants.WHITE_SPACE
 		}
 
-		assignmentLine += WHITE_SPACE + VERTICAL_BORDER_CHAR
+		assignmentLine += constants.WHITE_SPACE + constants.VERTICAL_BORDER_CHAR
 
 		lines = append(lines, assignmentLine)
 	}
