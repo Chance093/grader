@@ -1,6 +1,6 @@
 package ascii
 
-import "github.com/Chance093/gradr/constants"
+import "github.com/Chance093/grader/constants"
 
 func getHorizontalBorderLine(ints []int, line string) string {
 	var horizontalBorder string

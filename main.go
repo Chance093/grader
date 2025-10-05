@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/Chance093/gradr/internal/db"
+	"github.com/Chance093/grader/internal/db"
 	_ "github.com/mattn/go-sqlite3"
 )
 

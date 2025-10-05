@@ -5,10 +5,10 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Chance093/gradr/ascii"
-	"github.com/Chance093/gradr/constants"
-	"github.com/Chance093/gradr/prompt"
-	"github.com/Chance093/gradr/validation"
+	"github.com/Chance093/grader/ascii"
+	"github.com/Chance093/grader/constants"
+	"github.com/Chance093/grader/prompt"
+	"github.com/Chance093/grader/validation"
 )
 
 func (cfg *config) viewAssignments(className string) {
@@ -42,7 +42,7 @@ func (cfg *config) addAssignment(className string) {
 	}
 
 	if err := validation.ValidatePoints(totalPoints, correctPoints); err != nil {
-    // check to see if error is conversion error or validation error
+		// check to see if error is conversion error or validation error
 		if strings.Contains(err.Error(), "conversion") {
 			log.Fatalf("Error while validating points: %s", err)
 		}
@@ -127,7 +127,7 @@ func (cfg *config) editAssignmentGrade(assignment, className string) {
 	}
 
 	if err := validation.ValidatePoints(totalPoints, correctPoints); err != nil {
-    // check to see if error is conversion error or validation error
+		// check to see if error is conversion error or validation error
 		if strings.Contains(err.Error(), "conversion") {
 			log.Fatalf("Error while validating points: %s", err)
 		}

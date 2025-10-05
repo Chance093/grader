@@ -3,7 +3,7 @@ package calculate
 import (
 	"strconv"
 
-	"github.com/Chance093/gradr/types"
+	"github.com/Chance093/grader/types"
 )
 
 func CalculateGrades(raw types.ClassesAndGradesRaw) types.ClassAndGradeMap {

@@ -3,8 +3,8 @@ package ascii
 import (
 	"fmt"
 
-	"github.com/Chance093/gradr/constants"
-	"github.com/Chance093/gradr/types"
+	"github.com/Chance093/grader/constants"
+	"github.com/Chance093/grader/types"
 )
 
 func DisplayClassGrades(data map[string]string) {

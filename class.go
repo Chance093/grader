@@ -5,11 +5,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Chance093/gradr/ascii"
-	"github.com/Chance093/gradr/calculate"
-	"github.com/Chance093/gradr/constants"
-	"github.com/Chance093/gradr/prompt"
-	"github.com/Chance093/gradr/validation"
+	"github.com/Chance093/grader/ascii"
+	"github.com/Chance093/grader/calculate"
+	"github.com/Chance093/grader/constants"
+	"github.com/Chance093/grader/prompt"
+	"github.com/Chance093/grader/validation"
 )
 
 func (cfg *config) viewOverallGrades() {

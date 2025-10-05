@@ -1,4 +1,4 @@
-module github.com/Chance093/gradr
+module github.com/Chance093/grader
 
 go 1.24.5
 

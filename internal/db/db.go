@@ -19,24 +19,24 @@ func NewDB() (*DB, error) {
 }
 
 func initDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "./gradr.db")
+	db, err := sql.Open("sqlite3", "./grader.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	createTablesSQL := `
-CREATE TABLE IF NOT EXISTS classes (
+  CREATE TABLE IF NOT EXISTS classes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     subject TEXT NOT NULL
-);
+  );
 
-CREATE TABLE IF NOT EXISTS assignment_types (
+  CREATE TABLE IF NOT EXISTS assignment_types (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE
-);
+  );
 
-CREATE TABLE IF NOT EXISTS assignments (
+  CREATE TABLE IF NOT EXISTS assignments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     correct INTEGER NOT NULL,
@@ -46,16 +46,16 @@ CREATE TABLE IF NOT EXISTS assignments (
     type_id INTEGER NOT NULL,
     FOREIGN KEY(class_id) REFERENCES classes(id)
     FOREIGN KEY(type_id) REFERENCES types(id)
-);
+  );
 
-CREATE TABLE IF NOT EXISTS assignment_weights (
+  CREATE TABLE IF NOT EXISTS assignment_weights (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     weight INTEGER NOT NULL,
     class_id INTEGER NOT NULL,
     type_id INTEGER NOT NULL,
     FOREIGN KEY(class_id) REFERENCES classes(id)
     FOREIGN KEY(type_id) REFERENCES types(id)
-);`
+  );`
 
 	_, err = db.Exec(createTablesSQL)
 	if err != nil {
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS assignment_weights (
 	}
 
 	createAssignmentTypes := `
-INSERT OR IGNORE INTO assignment_types (name)
+  INSERT OR IGNORE INTO assignment_types (name)
   VALUES ("Test"), ("Quiz"), ("Homework");
   `
 	_, err = db.Exec(createAssignmentTypes)

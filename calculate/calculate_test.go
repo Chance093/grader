@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Chance093/gradr/types"
+	"github.com/Chance093/grader/types"
 )
 
 func TestGetClassAndWeightGradesMap(t *testing.T) {

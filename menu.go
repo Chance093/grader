@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/Chance093/gradr/constants"
-	"github.com/Chance093/gradr/prompt"
+	"github.com/Chance093/grader/constants"
+	"github.com/Chance093/grader/prompt"
 )
 
 func (cfg *config) displayMainMenu() {

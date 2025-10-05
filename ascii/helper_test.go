@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Chance093/gradr/constants"
+	"github.com/Chance093/grader/constants"
 )
 
 func init() {

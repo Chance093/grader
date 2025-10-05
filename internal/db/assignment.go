@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 
-	"github.com/Chance093/gradr/types"
+	"github.com/Chance093/grader/types"
 )
 
 func (db *DB) GetClassAssignments(className string) (types.Assignments, error) {
